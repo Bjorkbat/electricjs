@@ -35,6 +35,7 @@ function Resistor(x, y, r, context) {
   console.log("This is the effective resistance:  " + this.effective_resistance);
   
   this.type = "resistor";
+  this.name = this.resistance + " Ohm Resistor";
   
   this.draw = function(context) {
     //if(action && actionImg) { context.drawImage(actionImg, xPos, yPos); }
@@ -64,7 +65,7 @@ function Resistor(x, y, r, context) {
 	context.fillText("Current: " + (this.current * 1000).toFixed() + " mA", this.xPos - 50, this.yPos - 10);
       }
       else {
-	context.fillText("Component Type: " + this.resistance + " " + this.type, this.xPos - 50, this.yPos);
+	context.fillText("Component Type: " + this.name, this.xPos - 50, this.yPos);
       }
     }	
   }
@@ -130,6 +131,8 @@ function LED(x, y, color, context) {
   this.height = 70;
   
   this.type = "LED";
+  this.color = color;
+  this.name = color.charAt(0).toUpperCase() + color.slice(1) + " LED";
   
   this.inputTerm = new Terminal(x + 10, y + 70, this, "Positive"); 
   this.outputTerm = new Terminal(x + 20, y + 60, this, "Negative");
@@ -140,7 +143,6 @@ function LED(x, y, color, context) {
   this.voltage = 2.2;
   this.resistance = 0;
   
-  this.color = color;
   
   this.draw = function(context) {
     //if(action && actionImg) { context.drawImage(actionImg, xPos, yPos); }
@@ -170,7 +172,7 @@ function LED(x, y, color, context) {
 	context.fillText("Current: " + (this.current * 1000).toFixed() + " mA", this.xPos - 50, this.yPos - 10);
       }
       else {
-	context.fillText("Component Type: " + this.color + " " + this.type, this.xPos - 50, this.yPos);
+	context.fillText("Component Type: " + this.name, this.xPos - 50, this.yPos);
       }
     }	
   }

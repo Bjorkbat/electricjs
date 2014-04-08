@@ -29,6 +29,7 @@ function Battery_9volt(x, y, context) {
   this.voltage = 9;
   
   this.type = "9 volt battery";
+  this.name = "9 Volt Battery";
   
   this.draw = function(context) {
     //if(action && actionImg) { context.drawImage(actionImg, xPos, yPos); }
@@ -58,7 +59,7 @@ function Battery_9volt(x, y, context) {
 	context.fillText("Current: " + (this.current * 1000).toFixed() + " mA", this.xPos - 50, this.yPos - 10);
       }
       else {
-	context.fillText("Component Type: " + this.type, this.xPos - 50, this.yPos);
+	context.fillText("Component Type: " + this.name, this.xPos - 50, this.yPos);
       }
     }	
   }
