@@ -423,7 +423,7 @@ function Component(x, y, w, h, src, context) {
     }
     if(this.entity_of)
       this.entity_of.updateSeriesSum(this.future_series_sum);
-  }
+  };
     
   this.setParallelCluster = function(parallel_input) {
     
@@ -474,18 +474,23 @@ function Component(x, y, w, h, src, context) {
     this.cluster_update = true;
     if(this.entity_of)
       this.entity_of.setClusterUpdate(this.parallel_cluster);
-  }
+  };
   
   this.setOnImg = function(src) {
     onImg = new Image();
     onImg.src = src;
-  }
+  };
   
-  this.setInputWire = function(wire) { this.inputTerm.connectedTo = wire; }
+  this.setInputWire = function(wire) { this.inputTerm.connectedTo = wire; };
   
   this.setInputComponent = function() {
+  
     var input_wire = this.getInputWire();
     var inputs;
+    
+    // counter vars
+    var i = 0;
+    
     if(input_wire && input_wire.connectedToLeft &&
       input_wire.connectedToRight) {
 			if(input_wire.connectedToLeft == this) {
@@ -501,7 +506,7 @@ function Component(x, y, w, h, src, context) {
 			else {
 				inputs = [inputs];
 			}
-			for(var i in inputs) {
+			for(i = 0; i < inputs.length; i ++) {
 				if(inputs[i] == this) {
 					this.shorted_flag = true;
 				}
@@ -510,15 +515,15 @@ function Component(x, y, w, h, src, context) {
     console.log(this.inputComps);
     this.inputComps = inputs.slice(0);
     this.future_inputComps = inputs.slice(0);
-    for (i in this.inputComps) {
+    for (i = 0; i < this.inputComps.length; i ++) {
       console.log(this.inputComps[i].type);
     }
-  }
+  };
   
   this.swapInputComponents = function(other_inputComps) {
     this.future_inputComps = other_inputComps.slice(0);
     console.log(this.future_inputComps);
-  }
+  };
   
   // All this method does is take the input components from the component
   // it's bound to, and the component that serves as an arg, and combines the
@@ -568,21 +573,22 @@ function Component(x, y, w, h, src, context) {
       this.entity_of.setFutureInputs(this.future_inputComps);
     
     this.mergedInputs ++;
-  }
+  };
   
   this.replaceInput = function(orig, replacement) {
   
     var already_there = false;
     
-    console.log("calling replace input");
-    
-    for(var i in this.inputComps) {
+    // counter vars
+    var i = 0;
+        
+    for(i = 0; i < this.inputComps.length; i ++) {
       if(this.inputComps[i] == orig) {
 				this.inputComps[i] = replacement;
       }
     }
     
-    for(var i = 0; i < this.inputComps.length; i ++) {
+    for(i = 0; i < this.inputComps.length; i ++) {
     	if(this.inputComps[i] == replacement && !already_there)
     		already_there = true;
     	else if(this.inputComps[i] == replacement) {
@@ -592,13 +598,18 @@ function Component(x, y, w, h, src, context) {
     
     if(this.entity_of)
       this.entity_of.replaceInput(orig, replacement);
-  }
+  };
   
-  this.setOutputWire = function(wire) { this.outputTerm.connectedTo = wire; }
+  this.setOutputWire = function(wire) { this.outputTerm.connectedTo = wire; };
   
   this.setOutputComponent = function() {
+  
     var output_wire = this.getOutputWire();
     var outputs;
+    
+    // counter vars
+    var o = 0;
+    
     if(output_wire && output_wire.connectedToLeft &&
       output_wire.connectedToRight) {
 
@@ -618,14 +629,14 @@ function Component(x, y, w, h, src, context) {
     }
     this.outputComps = outputs.slice(0);
     this.future_outputComps = outputs.slice(0);
-    for(o in this.outputComps) {
+    for(o = 0; o < this.outputComps.length; o ++) {
       console.log(this.outputComps[o].type);
     }
-  }
+  };
   
   this.swapOutputComponents = function(other_outputComps) {
     this.future_outputComps = other_outputComps.slice(0);
-  }
+  };
   
   this.mergeOutputComponents = function(output) {
   	/*
@@ -670,7 +681,7 @@ function Component(x, y, w, h, src, context) {
       this.entity_of.setFutureOutputs(this.future_outputComps);
       
     this.mergedOutputs ++;
-  }
+  };
   
   this.replaceOutput = function(orig, replacement) {
   
@@ -679,16 +690,19 @@ function Component(x, y, w, h, src, context) {
     var outputCluster;
     var is_equal = false;
     
+    // counter vars
+    var o = 0;
+    
     console.log("calling replace output");
     
-    for(var o in this.outputComps) {
+    for(o = 0; o < this.outputComps.length; o ++) {
       if(this.outputComps[o] == orig) {
 				this.outputComps[o] = replacement;
 				console.log("replacing output");
       }
     }
     
-    for(var o = 0; o < this.outputComps.length; o ++) {
+    for(o = 0; o < this.outputComps.length; o ++) {
     	if(this.outputComps[o] == replacement && !already_there)
     		already_there = true;
     	else if(this.outputComps[o] == replacement) {
@@ -697,7 +711,7 @@ function Component(x, y, w, h, src, context) {
     }
     if(this.entity_of)
       this.entity_of.replaceOutput(orig, replacement);
-  }
+  };
   
   this.updateResistance = function(powered) {
   
@@ -720,7 +734,7 @@ function Component(x, y, w, h, src, context) {
 			    if(input[0] == this.future_inputComps[i]) {
 				    count ++;
 				    if(count >= this.mergedInputs)
-					    this.inputComps.push(input)
+					    this.inputComps.push(input);
 					  this.future_inputComps.splice(i, 1);
 					  i --;
 					}
@@ -736,7 +750,7 @@ function Component(x, y, w, h, src, context) {
     	this.outputComps = [];
     	while(this.future_outputComps.length) {
     	
-    		output = this.future_outputComps.slice(0, 1)
+    		output = this.future_outputComps.slice(0, 1);
 	    	count = 0;
 		    for(var o = 0; o < this.future_outputComps.length; o ++) {
 			    if(output[0] == this.future_outputComps[o]) {
@@ -785,7 +799,7 @@ function Component(x, y, w, h, src, context) {
 			console.log(this.seriesSum[s]);
     }
     console.log(this.summedResist);
-  }
+  };
   
   this.removeConnect = function(orig) {
     if(this.getInputWire() == orig) {
@@ -794,7 +808,7 @@ function Component(x, y, w, h, src, context) {
     else if(this.getOutputWire() == orig) {
       this.outputTerm.connectedTo = null;
     }
-  }
+  };
     
   /**************************************
    ** 		**Other**		**
