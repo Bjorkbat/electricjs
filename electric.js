@@ -21,15 +21,20 @@ var setup_grid = function(context, highlights) {
   context.strokeStyle = "#CCCCCC";
   var style_flag = false;
   
+  // counter variables
+  var x = 0;
+  var y = 0;
+  var h = 0;
+  
   //The logic behind using floats is complicated, just roll with it.
   //Also, starting at 7.75 because that's the axis we're drawing on.  
-  for (var x = 10.5; x < 800; x += 10) {
-    for(var y = 7.75; y < 500; y += 10) {
+  for (x = 10.5; x < 800; x += 10) {
+    for(y = 7.75; y < 500; y += 10) {
     	
     	//In a nutshell, if x and y, when adjusted, match the highlight x and y
     	//call stroke so you can change the style, add text, set a flag, and
     	//begin the path anew with this new style
-      for(var h in highlights) {
+      for(h in highlights) {
         if(x - 0.5 == highlights[h].x && y + 2.25 == highlights[h].y) {
           context.stroke();
           context.strokeStyle = "red";
@@ -56,10 +61,10 @@ var setup_grid = function(context, highlights) {
   }
 
 	//Now we're drawing lines parallel to the x-axis, using same process as before.
-  for (var y = 10.5; y < 500; y += 10) {
-    for(var x = 7.75; x < 800; x += 10) {
+  for (y = 10.5; y < 500; y += 10) {
+    for(x = 7.75; x < 800; x += 10) {
 
-      for(var h in highlights) {
+      for(h in highlights) {
         if(x + 2.25 == highlights[h].x && y - 0.5 == highlights[h].y) {
           context.stroke();
           context.strokeStyle = "red";
@@ -85,12 +90,13 @@ var setup_grid = function(context, highlights) {
 
 /*****************************************************************************
  * 
- * Support Function.  Basically used to check and see if two different arrays
- * of components contain the same components, even if they're not necessarily
- * in the same order
+ * Support Function.  A way to determine if two arrays basically have the same
+ * content, and thus are equal in a certain sense.  Also used to determine if
+ * CompCluster objects have the same cluster entities (thus implying that
+ * they're intended to be equal)
  * 
  * **************************************************************************/
-equal_paraseries = function(s1, s2) {
+equal_array = function(s1, s2) {
   
   var unique = true;
   
@@ -98,12 +104,11 @@ equal_paraseries = function(s1, s2) {
     for(var i in s1) {
       unique = true;
       for(var o in s2) {
-				if(s1[i] == s2[o]) {
+				if(s1[i] == s2[o])
 				  unique = false;
-				}
-      }
-      if(unique == true)
-	break;
+			}
+      if(unique === true)
+      	break;
     }
   }
   
@@ -131,7 +136,7 @@ function Component(x, y, w, h, src, context) {
   
   var Img_0 = new Image();
   Img_0.src = src || "";
-  Img_0.onload = function() { context.drawImage(Img_0, x, y);}
+  Img_0.onload = function() { context.drawImage(Img_0, x, y); };
   
   this.xPos = x;
   this.yPos = y;
@@ -143,7 +148,7 @@ function Component(x, y, w, h, src, context) {
   this.steps = 0;
   
   //Resistor?  LED?  Battery?  See component libraries for details
-  this.type;
+  this.type = null;
   
   //The terminal object representing the input, the components directly
   //connected to this component, and soon to be input components, in
@@ -173,6 +178,8 @@ function Component(x, y, w, h, src, context) {
   this.parallel_cluster = [];
   this.parallelSeriesSum = [this];
   this.cluster_update = false;
+  this.mergedInputs = 1;
+  this.mergedOutputs = 1;
   this.series_update = false;
   this.entity_of;
   
@@ -208,7 +215,7 @@ function Component(x, y, w, h, src, context) {
 				context.fillText("Component Type: " + this.type, this.xPos - 50, this.yPos);
       }
     }	
-  }
+  };
   
   /****************************************************************************
   *
@@ -219,9 +226,9 @@ function Component(x, y, w, h, src, context) {
   *
   ****************************************************************************/
   
-  this.getInputWire = function() { return this.inputTerm.connectedTo; }
+  this.getInputWire = function() { return this.inputTerm.connectedTo; };
   
-  this.getOutputWire = function() { return this.outputTerm.connectedTo; }
+  this.getOutputWire = function() { return this.outputTerm.connectedTo; };
         
   //Don't let the length of the method fool you, all isPowered does is tell you if
   //the component is connected to a power source from the positive terminal.
@@ -229,16 +236,21 @@ function Component(x, y, w, h, src, context) {
   //connected to from the input side, until eventually finding a power source
   //or not.
   this.isPowered = function() {
-    
+  	    
     var has_battery = false;
     var switch_buffer;
     this.visited = true;
+    
+    // counter variables
+    // for the sake of semantics, or whatever, i is used for inputComps, and o
+    // is used for outputComps
+    var i = 0;
     
     //If we're lucky, component might be connected directly to a power source,
     //or one of its inputs might have already been visited and switched to "on"
     //(as in, we called this and the Grounded method on it already, and it
     //satisfies both conditions
-    for(var i in this.inputComps) {
+    for(i = 0; i < this.inputComps.length; i ++) {
       if(this.inputComps[i].type === "9 volt battery" || this.inputComps[i].on_off)
 			has_battery = true;
     }
@@ -248,7 +260,7 @@ function Component(x, y, w, h, src, context) {
     //going through until either one of them satisfies the method, or we
     //run out of inputs
     if(!has_battery) {
-      for(var i in this.inputComps) {
+      for(i = 0; i < this.inputComps.length; i ++) {
 				if(!this.inputComps[i].visited) {
 					has_battery = this.inputComps[i].isPowered();
 					if(has_battery)
@@ -261,16 +273,16 @@ function Component(x, y, w, h, src, context) {
       //Note, we're checking to see if the outputComp is a battery first
       //Before trying the recursive method again
       if(!has_battery) {
-				for(var i in this.outputComps) {
-					if(this.outputComps[i].type === "9 volt battery") {
+				for(o = 0; o < this.outputComps.length; o ++) {
+					if(this.outputComps[o].type === "9 volt battery") {
 						has_battery = true;
 						break;
 					}
 				}
 				if(!has_battery) {
-					for(var i in this.outputComps) {
-						if(!this.outputComps[i].visited) {
-							has_battery = this.outputComps[i].isPowered(this);
+					for(o = 0; o < this.outputComps.length; o ++) {
+						if(!this.outputComps[o].visited) {
+							has_battery = this.outputComps[o].isPowered(this);
 							break;
 						}
 					}
@@ -289,7 +301,7 @@ function Component(x, y, w, h, src, context) {
 		}
 		this.visited = false;
 		return has_battery;
-  }
+  };
   
   //See above comment block on the isPowered method
   this.isGrounded = function(prev_component) {
@@ -298,7 +310,11 @@ function Component(x, y, w, h, src, context) {
     var switch_buffer;
     this.visited = true;
     
-    for(var o in this.outputComps) {
+    // counter vars
+    var i = 0;
+    var o = 0;
+    
+    for(o = 0; o < this.outputComps.length; o ++) {
       if(this.outputComps[o].type === "9 volt battery")
 			has_battery = true;
     }
@@ -313,7 +329,7 @@ function Component(x, y, w, h, src, context) {
     // circuit.
     
     if(!has_battery) {
-      for(var o in this.outputComps) {
+      for(o = 0; o < this.outputComps.length; o ++) {
 				if(!this.outputComps[o].visited) {
 					has_battery = this.outputComps[o].isGrounded(this);
 					if(has_battery)
@@ -323,14 +339,14 @@ function Component(x, y, w, h, src, context) {
       // part where we try other components to see if this component was wired
       // the "wrong" way.
       if(!has_battery && !this.switched) {
-				for(var i in this.inputComps) {
+				for(i = 0; i < this.inputComps.length; i ++) {
 					if(this.inputComps[i].type === "9 volt battery") {
 						has_battery = true;
 						break;
 					}
 				}
 				if(!has_battery) {
-					for(var i in this.inputComps) {
+					for(i = 0; i < this.inputComps.length; i ++) {
 						if(!this.inputComps[i].visited) {
 							has_battery = this.inputComps[i].isGrounded(this);
 							break;
@@ -348,7 +364,7 @@ function Component(x, y, w, h, src, context) {
     }
     this.visited = false;
     return has_battery;
-  }
+  };
   
   /****************************************************************************
   *
@@ -417,7 +433,7 @@ function Component(x, y, w, h, src, context) {
     
     var unique = true;
     
-    //Basically, make sure you don't divide by zero
+    /*
     if(this.summedResist > 0)
       effective_invert = (1 / this.summedResist);
     else
@@ -432,6 +448,7 @@ function Component(x, y, w, h, src, context) {
       this.future_effective = 0;
     else
       this.future_effective = Math.pow((effective_invert + parallel_invert), -1);
+    */
     
     if(!this.entity_of)
       this.parallelSeriesSum = this.seriesSum.slice(0);
@@ -447,11 +464,11 @@ function Component(x, y, w, h, src, context) {
     for(var pr in other_series_sum) {
       for(var rc in this.parallel_cluster) {
 				if(this.parallel_cluster[rc] == other_series_sum[pr])
-				unique = false;
+					unique = false;
       }
       if(unique)
 				this.parallel_cluster.push(other_series_sum[pr]);
-      unique = true;
+			unique = true;
     }
     
     this.cluster_update = true;
@@ -503,12 +520,25 @@ function Component(x, y, w, h, src, context) {
     console.log(this.future_inputComps);
   }
   
+  // All this method does is take the input components from the component
+  // it's bound to, and the component that serves as an arg, and combines the
+  // the two.
+  // It's up to updateResist to take the array of future_inputComps and peform
+  // an intersection operation
   this.mergeInputComponents = function(input) {
+  	/*
     var unique = true;
     var inputs = input.inputComps;
     var in_series_sum;
-    this.future_inputComps = this.inputComps.slice(0);
-    
+    */
+    var inputs = input.inputComps;
+    if(this.mergedInputs == 1)
+	    this.future_inputComps = this.inputComps.slice(0);
+	    
+	  for(var i in inputs)
+		  this.future_inputComps.push(inputs[i]);
+		
+		/*
     for(var i in this.future_inputComps) {
       if(this.future_inputComps[i] == input)
 			this.future_inputComps.splice(i, 1);
@@ -532,12 +562,16 @@ function Component(x, y, w, h, src, context) {
 					this.future_inputComps.push(inputs[i]);
       }
     }
+    */
     
     if(this.entity_of)
       this.entity_of.setFutureInputs(this.future_inputComps);
+    
+    this.mergedInputs ++;
   }
   
   this.replaceInput = function(orig, replacement) {
+  
     var already_there = false;
     
     console.log("calling replace input");
@@ -545,31 +579,15 @@ function Component(x, y, w, h, src, context) {
     for(var i in this.inputComps) {
       if(this.inputComps[i] == orig) {
 				this.inputComps[i] = replacement;
-				console.log("doing replacement");
       }
     }
     
-    for(var fi in this.future_inputComps) {
-      if(this.future_inputComps[fi] == orig) {
-				this.future_inputComps[fi] = replacement;
-				console.log("doing replacement");
-      }
-    }
-    
-    for(var i in this.inputComps) {
-      if(this.inputComps[i] == replacement && !already_there)
-				already_there = true;
-      else if(this.inputComps[i] == replacement)
-				this.inputComps.splice(i, 1);
-    }
-    
-    already_there = false;
-    
-    for(var fi in this.future_inputComps){
-      if(this.future_inputComps[fi] == replacement && !already_there)
-				already_there = true;
-      else if(this.future_inputComps[fi] == replacement)
-				this.future_inputComps.splice(fi, 1);
+    for(var i = 0; i < this.inputComps.length; i ++) {
+    	if(this.inputComps[i] == replacement && !already_there)
+    		already_there = true;
+    	else if(this.inputComps[i] == replacement) {
+    		this.inputComps[i].splice(i, 1); i --;
+    	}
     }
     
     if(this.entity_of)
@@ -610,11 +628,20 @@ function Component(x, y, w, h, src, context) {
   }
   
   this.mergeOutputComponents = function(output) {
+  	/*
     var unique = true;
     var in_series_sum = false;
     var outputs = output.outputComps;
-    this.future_outputComps = this.outputComps.slice(0);
+    */
+
+    var outputs = output.outputComps;
+    if(this.mergedOutputs == 1)
+	    this.future_outputComps = this.outputComps.slice(0);
+	    
+	  for(var o in outputs)
+		  this.future_outputComps.push(outputs[o]);
     
+    /*
     for(var o in this.future_outputComps) {
       if(this.future_outputComps[o] == output)
 				this.future_outputComps.splice(o, 1);
@@ -638,12 +665,19 @@ function Component(x, y, w, h, src, context) {
 					this.future_outputComps.push(outputs[o]);
       }
     }
+		*/
     if(this.entity_of)
       this.entity_of.setFutureOutputs(this.future_outputComps);
+      
+    this.mergedOutputs ++;
   }
   
   this.replaceOutput = function(orig, replacement) {
+  
     var already_there = false;
+    var replCluster = replacement.cluster_entities;
+    var outputCluster;
+    var is_equal = false;
     
     console.log("calling replace output");
     
@@ -654,57 +688,80 @@ function Component(x, y, w, h, src, context) {
       }
     }
     
-    for(var fo in this.future_outputComps) {
-      if(this.future_outputComps[fo] == orig) {
-				this.future_outputComps[fo] = replacement;
-				console.log("replacing output future");
-      }
+    for(var o = 0; o < this.outputComps.length; o ++) {
+    	if(this.outputComps[o] == replacement && !already_there)
+    		already_there = true;
+    	else if(this.outputComps[o] == replacement) {
+    		this.outputComps[o].splice(o, 1); o --;
+    	}
     }
-    
-    for(var o in this.outputComps) {
-      if(this.outputComps[o] == replacement && !already_there) {
-				already_there = true;
-				console.log("found the first instance");
-      }
-      else if(this.outputComps[o] == replacement) {
-				this.outputComps.splice(o, 1);
-				console.log("delete");
-      }
-    }
-    
-    already_there = false;
-    
-    for(var fo in this.future_outputComps){
-      if(this.future_outputComps[fo] == replacement && !already_there)
-				already_there = true;
-      else if(this.future_outputComps[fo] == replacement)
-				this.future_outputComps.splice(fo, 1);
-    }
-    
     if(this.entity_of)
       this.entity_of.replaceOutput(orig, replacement);
   }
   
   this.updateResistance = function(powered) {
-    this.inputComps = this.future_inputComps.slice(0);
-    this.outputComps = this.future_outputComps.slice(0);
+  
+  	var count;
+  	var splice_count = 0;
+  	var input;
+  	var output;
+  	
+  	// The two loops below are a process used for transferring over inputComps
+  	// without getting duplicates / only getting those inputs that are common
+  	// to all merged inputs/outputs.
+  	if(this.mergedInputs > 1) {
+  	
+  		this.inputComps = [];
+	    while(this.future_inputComps.length) {
+	    
+	    	input = this.future_inputComps.slice(0, 1);
+	    	count = 0;
+		    for(var i = 0; i < this.future_inputComps.length; i++) {
+			    if(input[0] == this.future_inputComps[i]) {
+				    count ++;
+				    if(count >= this.mergedInputs)
+					    this.inputComps.push(input)
+					  this.future_inputComps.splice(i, 1);
+					  i --;
+					}
+		    }
+		    
+	    }
+	    this.mergedInputs = 1;
+	    
+	  }
+	      
+    if(this.mergedOutputs > 1) {
     
-    this.summedResist = 0;
-    
+    	this.outputComps = [];
+    	while(this.future_outputComps.length) {
+    	
+    		output = this.future_outputComps.slice(0, 1)
+	    	count = 0;
+		    for(var o = 0; o < this.future_outputComps.length; o ++) {
+			    if(output[0] == this.future_outputComps[o]) {
+				    count ++;
+				    if(count >= this.mergedOutputs)
+					    this.outputComps.push(output);
+						this.future_outputComps.splice(o, 1);
+						o --;
+				  }
+		    }
+	    }
+	    this.mergedOutputs = 1;
+    }
+            
     var resistor_cluster;
     
     this.seriesSum = this.future_series_sum.slice(0);
     
     if(this.cluster_update) {
       if(!this.entity_of) {
-				resistor_cluster = new CompCluster(this.future_effective,
-				this.parallel_cluster, this.inputComps, this.outputComps);
-				console.log("New virtual component");
+				resistor_cluster = new CompCluster(this.parallel_cluster,
+					this.inputComps, this.outputComps, powered);
       }
-      else {
-				resistor_cluster = this.entity_of;
-				console.log("this already has a virtual component");
-      }
+      this.entity_of.setAndReplace();
+      /*
       this.seriesSum = [];
       this.seriesSum.push(resistor_cluster);
       for(var p in powered) {
@@ -712,6 +769,7 @@ function Component(x, y, w, h, src, context) {
 				powered[p].replaceInput(this, resistor_cluster);
       }
       this.cluster_update = false;
+      */
     }
     
     this.future_series_sum = this.seriesSum.slice(0);
@@ -719,6 +777,7 @@ function Component(x, y, w, h, src, context) {
     if(this.entity_of)
       this.entity_of.updateResistance(powered);
     
+    this.summedResist = 0;
     for(var s in this.seriesSum) {
       this.summedResist += this.seriesSum[s].resistance;
       if(this.seriesSum[s].type == "Virtual Component")
@@ -794,11 +853,12 @@ function Component(x, y, w, h, src, context) {
  * PARAM outputs: an array containg, wait or it....the outputs
  * 
  * ***************************************************************************/
-function CompCluster(r, cluster, inputs, outputs) {
-  this.resistance = r;
-  this.summedResist = r;
-  this.futureSummedResist = r;
+function CompCluster(cluster, inputs, outputs, p) {
+  this.resistance;
+  this.summedResist;
+  this.futureSummedResist;
   this.future_resistance;
+  this.poweredComps = p;
   
   this.type = "Virtual Component";
   
@@ -808,6 +868,9 @@ function CompCluster(r, cluster, inputs, outputs) {
   
   //the components that constitute this 
   this.cluster_entities = cluster;
+  // basically, this is an array consisting of arrays, the secondary arrays
+  // being the different parallel series from the components that constitute
+  // the cluster, sorted out so that each entry is unique
   this.cluster_paraseries = [];
   
   this.parallel_cluster;
@@ -821,23 +884,42 @@ function CompCluster(r, cluster, inputs, outputs) {
   this.unique = true;
   
   for (var ce in this.cluster_entities) {
+  	// make sure that each component in the cluster knows that it's part of
+  	// this component cluster
     this.cluster_entities[ce].entity_of = this;
-    if(!this.cluster_paraseries.length)
+    // if the cluster_paraseries is empty, basically
+    if(!this.cluster_paraseries.length) {
+    	// copy the parallel series sum over, begin to calc parallel resitance
       this.cluster_paraseries.push(this.cluster_entities[ce].parallelSeriesSum.slice(0));
+      if (this.cluster_entities[ce].summedResist)
+      	this.resistance = 1 / this.cluster_entities[ce].summedResist;
+      else
+      	this.resistance = 0;
+    }
     else {
       for(var cps in this.cluster_paraseries) {
-				if(equal_paraseries(this.cluster_paraseries[cps],
+				if(equal_array(this.cluster_paraseries[cps],
 					this.cluster_entities[ce].parallelSeriesSum)) {
 					this.unique = false;
 					break;
 				}
       }
-      if(this.unique)
+      if(this.unique) {
 				this.cluster_paraseries.push(this.cluster_entities[ce].parallelSeriesSum.slice(0));
+				if (this.cluster_entities[ce].summedResist)
+					this.resistance += 1/this.cluster_entities[ce].summedResist;
+			}
 			this.unique = true;
     }
   }
+  this.resistance = Math.pow((this.resistance), -1);
+  this.summedResist = this.resistance;
+  this.futureSummedResist = this.resistance;
   
+  for(var ce in this.cluster_entities) {
+	  this.cluster_entities[ce].entity_of = this;
+  }
+    
   this.entity_of;
   this.cluster_update;
   
@@ -850,6 +932,18 @@ function CompCluster(r, cluster, inputs, outputs) {
   /**************************************
    * 		**Mutators**		*
    * ************************************/
+   
+  this.setAndReplace = function() {
+	  for (var i in this.cluster_entities) {
+		  this.cluster_entities[i].seriesSum = [];
+		  this.cluster_entities[i].seriesSum.push(this);
+		  for(var p in this.poweredComps) {
+			  this.poweredComps[p].replaceInput(this.cluster_entities[i], this);
+			  this.poweredComps[p].replaceOutput(this.cluster_entities[i], this);
+		  }
+		  this.cluster_entities[i].cluster_update = false;
+	  }
+  }
   
   this.setResistance = function(r) {
     this.resistance = r;
@@ -886,42 +980,34 @@ function CompCluster(r, cluster, inputs, outputs) {
   }
   
   this.replaceInput = function(orig, replacement) {
+  
     var already_there = false;
+    var replCluster = replacement.cluster_entities;
+    var inputCluster;
+    var is_equal = false;
     
     console.log("calling replace input");
     
     for(var i in this.inputComps) {
       if(this.inputComps[i] == orig) {
 				this.inputComps[i] = replacement;
-				console.log("doing replacement");
       }
     }
     
-    for(var fi in this.future_inputComps) {
-      if(this.future_inputComps[fi] == orig) {
-				this.future_inputComps[fi] = replacement;
-				console.log("doing replacement");
-      }
+    for(var i = 0; i < this.inputComps.length; i ++) {
+    	if(this.inputComps[i] == replacement && !already_there)
+    		already_there = true;
+    	else if(this.inputComps[i] == replacement) {
+    		this.inputComps[i].splice(i, 1); i --;
+    	}
     }
-    
-    for(var i in this.inputComps) {
-      if(this.inputComps[i] == replacement && !already_there)
-				already_there = true;
-      else if(this.inputComps[i] == replacement)
-				this.inputComps.splice(i, 1);
-    }
-    
-    already_there = false;
-    
-    for(var fi in this.future_inputComps) {
-      if(this.future_inputComps[fi] == replacement && !already_there)
-				already_there = true;
-      else if(this.future_inputComps[fi] == replacement)
-				this.future_inputComps.splice(fi, 1);
-    }
+        
+    if(this.entity_of)
+      this.entity_of.replaceInput(orig, replacement);
   }
   
   this.replaceOutput = function(orig, replacement) {
+  
     var already_there = false;
     
     console.log("calling replace output");
@@ -933,32 +1019,16 @@ function CompCluster(r, cluster, inputs, outputs) {
       }
     }
     
-    for(var fo in this.future_outputComps) {
-      if(this.future_outputComps[fo] == orig) {
-				this.future_outputComps[fo] = replacement;
-				console.log("replacing output future");
-      }
+    for(var o = 0; o < this.outputComps.length; o ++) {
+    	if(this.outputComps[o] == replacement && !already_there)
+    		already_there = true;
+    	else if(this.outputComps[o] == replacement) {
+    		this.outputComps[o].splice(o, 1); o --;
+    	}
     }
     
-    for(var o in this.outputComps) {
-      if(this.outputComps[o] == replacement && !already_there) {
-				already_there = true;
-				console.log("found the first instance");
-      }
-      else if(this.outputComps[o] == replacement) {
-				this.outputComps.splice(o, 1);
-				console.log("delete");
-      }
-    }
-    
-    already_there = false;
-    
-    for(var fo in this.future_outputComps){
-      if(this.future_outputComps[fo] == replacement && !already_there)
-				already_there = true;
-      else if(this.future_outputComps[fo] == replacement)
-				this.future_outputComps.splice(fo, 1);
-    }
+    if(this.entity_of)
+      this.entity_of.replaceOutput(orig, replacement);
   }
     
   this.updateEffective = function() {
@@ -2070,30 +2140,51 @@ function canvasState(canvas) {
     console.log("This is the array of powered " + powered);
     for(var p in powered)
       console.log(powered[p].seriesSum);
-    
+      
+    // traverse through the array of powered components
     for(var p in powered) {
+    	
       current_series = powered[p].seriesSum;
-      if(!(current_series.length == 1 && (current_series[0] == powered[p]
-				&& current_series[0].type !== "Virtual Component")
-      )) {
+      
+      // basically, if the series_sum != powered[p] itself, then we're going
+      // to do something with it
+      if( !(current_series.length == 1 && (current_series[0] == powered[p]
+				&& current_series[0].type !== "Virtual Component") ) ) {
+				
+				// traverse through the list of components in the series sum
 				for(var cs in current_series) {
+					// if cs != a virtual component, we're going to use pop_solve with the
+					// assumption that this component is in series, and break from the loop
 					if(current_series[cs] != powered[p] &&
 					current_series[cs].type !== "Virtual Component") {
 						pop_solve = current_series[cs];
 						complete = false;
 						break;
 					}
+					// if it is a virtual component, we're going to break it apart, with
+					// asusmption that this is component is basically a cluster of components
+					// in parallel
 					else if(current_series[cs] != powered[p] && !break_up) {
 						break_up = current_series[cs];
 						complete = false;
 					}  
 				}
-				console.log(p);
+				
+				// if we assigned a component to pop_solve...
 				if(pop_solve) {
 					console.log("Popping");
+					// we go ahead and assign the current of that component to whatever
+					// the "total current" happens to be
 					pop_solve.current = amps;
 					if(pop_solve.type !== "LED")
+						// then, we go ahead and set it's voltage equal to I * R, in accordance
+						// with ohm's law 
 						pop_solve.setVoltage(amps * pop_solve.resistance);
+					
+					// finally, we go through each powered component, check it's series_sum
+					// attr, and if one of those summed components equals our pop_solve
+					// component, we remove it from the array of series_sum comps, while
+					// exercising care not to remove powered[pp] from its own series_sum
 					for(var pp in powered) {
 						current_series = powered[pp].seriesSum;
 						for(var cs in current_series) {
@@ -2106,21 +2197,39 @@ function canvasState(canvas) {
 					}
 					pop_solve = 0;
 				}
+				
+				// The rational here is that the voltage should be calculate for comps in
+				// series first, then move to the stuff that's in clusters.
 				else if(break_up && p == (powered.length - 1)) {
+					
+					// simple enough, assign paraseries, and keep track of a variable holding
+					// the voltage dropped by this particular cluster of components
 					current_paraseries = break_up.cluster_paraseries;
 					cluster_voltage = break_up.resistance * amps || break_up.summedResist * amps;
 					console.log("This is the voltage for the cluster: " + cluster_voltage);
+					
 					for(var cps in current_paraseries) {
 						para_resistance = 0;
+						// basically, we're calculating the combined resistance of all series
+						// components in this paraseries, then we are assigning the current
+						// parallel series sum to the component below
 						for(var c in current_paraseries[cps]) {
 							para_resistance += current_paraseries[cps][c].resistance || 0;
 							current_paraseries[cps][c].seriesSum = current_paraseries[cps].slice(0);
 						}
+						// once this is finished, we can calculate the total resistance and
+						// amperage for this branch, then recursively solve the components'
+						// voltage
 						console.log("Series Resistance is: " + para_resistance);
 						para_amps = cluster_voltage / para_resistance;
 						console.log("The amperage is: " + para_amps);
 						calc_current_volt(current_paraseries[cps], para_amps, 1);
 					}
+					
+					// finally, having gone through this process for every branch in the
+					// parallel cluster, we can remove this virtual component from the
+					// series sum of every single component in powered, now that it's been
+					// satisfactorily calculated
 					for(var pp in powered) {
 						current_series = powered[pp].seriesSum;
 						for(var cs in current_series) {
@@ -2132,15 +2241,20 @@ function canvasState(canvas) {
 							}
 						}
 					}
+					
 					break_up = 0;
 				}
       }
+      // this is used for edge cases where there's only one
+      // component in the circuit, besides the battery
       else if(powered.length == 1) {
 				powered[p].current = amps;
 				powered[p].setVoltage(amps * powered[p].resistance);
 				console.log("No pop of break");
       }
     }
+    // as for this little detail, basically here because I don't trust
+    // this function to run recursively for as long as necessary.
     if(!complete && counter < 10) {
       console.log(counter);
       calc_current_volt(powered, amps, counter);
