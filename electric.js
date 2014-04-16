@@ -154,21 +154,21 @@ function Component(x, y, w, h, src, context) {
   //connected to this component, and soon to be input components, in
   //that order.
   //Will explain role of future_inputComps at a later date
-  this.inputTerm;
-  this.inputComps;
-  this.future_inputComps;
+  this.inputTerm = null;
+  this.inputComps = null;
+  this.future_inputComps = null;
   
   //See above
-  this.outputTerm;
-  this.outputComps;
-  this.future_outputComps;
+  this.outputTerm = null;
+  this.outputComps = null;
+  this.future_outputComps = null;
   
   //used for power and ground purposes
   this.visited = false;
     
-  this.voltage;
-  this.current;
-  this.resistance;
+  this.voltage = 0;
+  this.current = 0;
+  this.resistance = 0;
   this.summedResist = 0;
   this.future_effective = 0;
   
@@ -181,18 +181,18 @@ function Component(x, y, w, h, src, context) {
   this.mergedInputs = 1;
   this.mergedOutputs = 1;
   this.series_update = false;
-  this.entity_of;
+  this.entity_of = null;
   
   //if the component does something, we use this.
-  this.action;
-  this.actionImg;
+  this.action = null;
+  this.actionImg = null;
   
-  this.on_off;
+  this.on_off = null;
   this.display_flag = false;
   this.simulate_flag = false;
   this.shorted_flag = false;
   
-  var onImg;
+  var onImg = null;
   
   //Look at isPowered and isGrounded for details
   this.switched = false;
@@ -383,24 +383,24 @@ function Component(x, y, w, h, src, context) {
     this.xPos = x;
     this.inputTerm.xPos = (this.inputTerm.xPos + difference);
     this.outputTerm.xPos = (this.outputTerm.xPos + difference);
-  }
+  };
   
   this.setCompY = function(y) {
     var difference = y - this.yPos;
     this.yPos = y;
     this.inputTerm.yPos = (this.inputTerm.yPos + difference);
     this.outputTerm.yPos = (this.outputTerm.yPos + difference);
-  }
+  };
   
   this.setVoltage = function(v) {
     this.voltage = v;
     this.current = this.voltage / this.resistance;
-  }  
+  };
   
   this.setResistance = function(r) {
     this.resistance = r;
     this.summedResist = r;
-  }
+  };
   
   this.setSeriesIntersect = function(series) {
   
