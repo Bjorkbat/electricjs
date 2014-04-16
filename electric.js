@@ -832,24 +832,24 @@ function Component(x, y, w, h, src, context) {
       this.inputTerm.charge = "Neutral";
       this.outputTerm.charge = "Neutral";
     }
-  }
+  };
   
   this.drawTerms = function(context) {
     if(this.inputTerm) { this.inputTerm.draw(context, 'red'); }
     if(this.outputTerm) { this.termN.draw(context, 'black'); }
-  }
+  };
   
   this.isOver = function(mouseX, mouseY) {
     if(mouseX > this.xPos && mouseX < this.width + this.xPos)
       if(mouseY > this.yPos && mouseY < this.height + this.yPos)
-				return true
-  }
+				return true;
+  };
   
   this.isOverTerminals = function(mouseX, mouseY) {
     if(this.inputTerm.isOver(mouseX, mouseY)) return this.inputTerm;
     if(this.outputTerm.isOver(mouseX, mouseY)) return this.outputTerm;
-  }
-};
+  };
+}
 
 
 /*****************************************************************************
