@@ -1392,7 +1392,7 @@ function Terminal(x, y, obj, PosNeg) {
   this.radius = 5;
   
   this.attachedTo = obj;
-  this.connectedTo;
+  this.connectedTo = null;
   
   this.charge = PosNeg || "Neutral";
   
@@ -1402,7 +1402,7 @@ function Terminal(x, y, obj, PosNeg) {
     context.lineWidth = 1;
     context.strokeStyle = 'black';
     context.stroke();
-  }
+  };
   
   /************************************
   * Other
@@ -1412,7 +1412,7 @@ function Terminal(x, y, obj, PosNeg) {
     if(mouseX > (this.xPos - this.radius) && mouseX < (this.xPos + this.radius))
       if(mouseY > (this.yPos - this.radius) && mouseY < (this.yPos + this.radius))
 				return true;
-  }
+  };
 }
     
 /******************************************************************************
