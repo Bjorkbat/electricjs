@@ -1131,13 +1131,13 @@ function Wire(x1, y1, x2, y2) {
   this.slope = 0.0;
   this.strokeStyle = state.wire_color;
   
-  this.connectedToLeft;
-  this.connectedToRight;
+  this.connectedToLeft = null;
+  this.connectedToRight = null;
   
-  this.startTerm;
-  this.endTerm;
+  this.startTerm = null;
+  this.endTerm = mull;
   
-  this.highlight;
+  this.highlight = false;
   
   this.draw = function(context) {
     context.beginPath();
@@ -1150,24 +1150,24 @@ function Wire(x1, y1, x2, y2) {
     if(this.highlight) { context.lineWidth = 4; }
     else { context.lineWidth = 2; }
     context.stroke();
-  }
+  };
       
   
   /************************************
   * Accessors
   ************************************/
   
-  this.getStart = function() { return { x: this.startX, y: this.startY }; }
+  this.getStart = function() { return { x: this.startX, y: this.startY }; };
   
-  this.getEnd = function() { return { x: this.endX, y: this.endY }; }
+  this.getEnd = function() { return { x: this.endX, y: this.endY }; };
     
   /************************************
   * Mutators
   **********************************/
   
-  this.setStart = function(x, y) { this.startX = x; this.startY = y; }
+  this.setStart = function(x, y) { this.startX = x; this.startY = y; };
   
-  this.setEnd = function(x, y) { this.endX = x; this.endY = y; }
+  this.setEnd = function(x, y) { this.endX = x; this.endY = y; };
   
   this.setStartObj = function(obj) {
     this.startTerm = obj;
@@ -1179,7 +1179,7 @@ function Wire(x1, y1, x2, y2) {
       this.startTerm.connectedTo = this;
       this.endTerm.connectedTo = this;
     }
-  }
+  };
   
   this.setEndObj = function(obj) {
     this.endTerm = obj;
@@ -1191,7 +1191,7 @@ function Wire(x1, y1, x2, y2) {
       this.startTerm.connectedTo = this;
       this.endTerm.connectedTo = this;
     }
-  }
+  };
     
   
   /************************************
@@ -1209,6 +1209,7 @@ function Wire(x1, y1, x2, y2) {
       //standard diagonal line case
       var y_intercept = this.startY - (this.slope * this.startX);
       var y_point = mouseX * this.slope + y_intercept;
+      
       if(mouseY >= y_point -5 && mouseY <= y_point + 5) {
       	var lesserX;
 				var greaterX;
@@ -1246,7 +1247,7 @@ function Wire(x1, y1, x2, y2) {
     }
     this.highlight = false;
     return this.highlight;
-  }
+  };
 }
 
 /******************************************************************************
