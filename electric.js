@@ -868,10 +868,10 @@ function Component(x, y, w, h, src, context) {
  * 
  * ***************************************************************************/
 function CompCluster(cluster, inputs, outputs, p) {
-  this.resistance;
-  this.summedResist;
-  this.futureSummedResist;
-  this.future_resistance;
+  this.resistance = 0;
+  this.summedResist = 0;
+  this.futureSummedResist = 0;
+  this.future_resistance = 0;
   this.poweredComps = p;
   
   this.type = "Virtual Component";
@@ -887,7 +887,7 @@ function CompCluster(cluster, inputs, outputs, p) {
   // the cluster, sorted out so that each entry is unique
   this.cluster_paraseries = [];
   
-  this.parallel_cluster;
+  this.parallel_cluster = null;
   
   this.inputComps = inputs.slice(0);
   this.outputComps = outputs.slice(0);
@@ -897,7 +897,11 @@ function CompCluster(cluster, inputs, outputs, p) {
   
   this.unique = true;
   
-  for (var ce in this.cluster_entities) {
+  //counter vars
+  var ce;
+  var cps;
+  
+  for (ce = 0; ce < this.cluster_entities.length; ce ++) {
   	// make sure that each component in the cluster knows that it's part of
   	// this component cluster
     this.cluster_entities[ce].entity_of = this;
@@ -911,7 +915,7 @@ function CompCluster(cluster, inputs, outputs, p) {
       	this.resistance = 0;
     }
     else {
-      for(var cps in this.cluster_paraseries) {
+      for(cps = 0; cps < this.cluster_paraseries.length; cps ++) {
 				if(equal_array(this.cluster_paraseries[cps],
 					this.cluster_entities[ce].parallelSeriesSum)) {
 					this.unique = false;
@@ -930,18 +934,18 @@ function CompCluster(cluster, inputs, outputs, p) {
   this.summedResist = this.resistance;
   this.futureSummedResist = this.resistance;
   
-  for(var ce in this.cluster_entities) {
+  for(ce = 0; ce < this.cluster_entities.length; ce ++) {
 	  this.cluster_entities[ce].entity_of = this;
   }
     
-  this.entity_of;
-  this.cluster_update;
+  this.entity_of = null;
+  this.cluster_update = false;
   
   /**************************************
    * 		**Accessors**		*
    * ************************************/
   
-  this.getEffectiveResistance = function() { return this.summedResist; }
+  this.getEffectiveResistance = function() { return this.summedResist; };
   
   /**************************************
    * 		**Mutators**		*
@@ -957,41 +961,41 @@ function CompCluster(cluster, inputs, outputs, p) {
 		  }
 		  this.cluster_entities[i].cluster_update = false;
 	  }
-  }
+  };
   
   this.setResistance = function(r) {
     this.resistance = r;
     this.summedResist = r;
-  }
+  };
   
   this.setClusterUpdate = function(cluster) {
     this.parallel_cluster = cluster;
     this.cluster_update = true;
-  }
+  };
   
   this.setFutureOutputs = function(outputs) {
     this.future_outputComps = outputs.slice(0);
     if(this.entity_of)
       this.entity_of.setFutureOutputs(outputs);
-  }
+  };
   
   this.setFutureInputs = function(inputs) {
     this.future_inputComps = inputs.slice(0);
     if(this.entity_of)
       this.entity_of.setFutureInputs(inputs);
-  }
+  };
   
   this.swapInputComponents = function(other_inputComps) {
     for(var ce in this.cluster_entities)
       this.cluster_entities[ce].swapInputComponents(other_inputComps);
     this.future_inputComps = other_inputComps.slice(0);
-  }
+  };
   
   this.swapOutputComponents = function(other_outputComps) {
     for(var ce in this.cluster_entities)
       this.cluster_entities[ce].swapInputComponents(other_outputComps);
     this.future_outputComps = other_outputComps.slice(0);
-  }
+  };
   
   this.replaceInput = function(orig, replacement) {
   
@@ -1000,15 +1004,16 @@ function CompCluster(cluster, inputs, outputs, p) {
     var inputCluster;
     var is_equal = false;
     
-    console.log("calling replace input");
-    
-    for(var i in this.inputComps) {
+    //counter vars
+    var i;
+        
+    for(i = 0; i < this.inputComps.length; i ++) {
       if(this.inputComps[i] == orig) {
 				this.inputComps[i] = replacement;
       }
     }
     
-    for(var i = 0; i < this.inputComps.length; i ++) {
+    for(i = 0; i < this.inputComps.length; i ++) {
     	if(this.inputComps[i] == replacement && !already_there)
     		already_there = true;
     	else if(this.inputComps[i] == replacement) {
@@ -1018,22 +1023,22 @@ function CompCluster(cluster, inputs, outputs, p) {
         
     if(this.entity_of)
       this.entity_of.replaceInput(orig, replacement);
-  }
+  };
   
   this.replaceOutput = function(orig, replacement) {
   
     var already_there = false;
     
-    console.log("calling replace output");
-    
-    for(var o in this.outputComps) {
+    //counter vars
+    var o = 0;
+        
+    for(o = 0; o < this.outputComps.length; o ++) {
       if(this.outputComps[o] == orig) {
 				this.outputComps[o] = replacement;
-				console.log("replacing output");
       }
     }
     
-    for(var o = 0; o < this.outputComps.length; o ++) {
+    for(o = 0; o < this.outputComps.length; o ++) {
     	if(this.outputComps[o] == replacement && !already_there)
     		already_there = true;
     	else if(this.outputComps[o] == replacement) {
@@ -1043,14 +1048,14 @@ function CompCluster(cluster, inputs, outputs, p) {
     
     if(this.entity_of)
       this.entity_of.replaceOutput(orig, replacement);
-  }
+  };
     
   this.updateEffective = function() {
     this.summedResist = 0;
     for(var s in this.seriesSum) {
       this.summedResist += this.seriesSum[s].resistance;
     }
-  }
+  };
   
   this.updateResistance = function(powered) {
     this.inputComps = this.future_inputComps.slice(0);
@@ -1094,13 +1099,13 @@ function CompCluster(cluster, inputs, outputs, p) {
 				this.seriesSum[s].updateEffective();
     }
     console.log(this.summedResist);
-  }
+  };
   
   this.updateSeriesSum = function (sum) {
     this.future_series_sum = sum.slice(0);
-  }
+  };
   
-};
+}
   
 
 /******************************************************************************
