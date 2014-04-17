@@ -1288,7 +1288,7 @@ function WireBranch(x, y, wires) {
     context.lineWidth = 1;
     context.strokeStyle = 'black';
     context.stroke();
-  }
+  };
   
   /*************************************
    * 		**Accessors**		*
@@ -1298,16 +1298,18 @@ function WireBranch(x, y, wires) {
     var connect_copy = this.connectedTo;
     var inputs = [];
     var received_inputs;
-    for(w in connect_copy) {
+    
+    //counter vars
+    var w = 0;
+    
+    for(w = 0; w < connect_copy.length; w ++) {
       if(connect_copy[w] == wire) {
 				connect_copy.splice(w, 1);
 				break;
       }
     }
-    
-    console.log(connect_copy.length + " this is the length of connect copy");
-    
-    for(w in connect_copy) {
+        
+    for(w = 0; w < connect_copy.length; w ++) {
       if(connect_copy[w].connectedToLeft == this) {
 				inputs.push(connect_copy[w].connectedToRight);
       }
@@ -1331,7 +1333,7 @@ function WireBranch(x, y, wires) {
     connect_copy.push(wire);
     console.log(inputs);
     return inputs;
-  }
+  };
   
   /*************************************
   * Mutators
@@ -1339,16 +1341,16 @@ function WireBranch(x, y, wires) {
   
   this.addConnect = function(obj) {
     this.connectedTo.push(obj); 
-  }
+  };
   
   this.removeConnect = function(obj) {
-    for (c in this.connectedTo) {
+    for (var c in this.connectedTo) {
       if (this.connectedTo[c] == obj) {
 				this.connectedTo.splice(c, 1);
 				return true;
       }
     }
-  }
+  };
   
   /*************************************
    * 		**Other**		*
@@ -1358,15 +1360,17 @@ function WireBranch(x, y, wires) {
     if(mouseX > (this.xPos - this.radius) && mouseX < (this.xPos + this.radius))
       if(mouseY > (this.yPos - this.radius) && mouseY < (this.yPos + this.radius))
 				return true;
-  }
+  };
       
   this.isConnected = function(obj) {
-    for(c in this.connectedTo)
+    for(var c in this.connectedTo)
       if(this.connectedTo[c] == obj)
 				return true;
     return false;
-  }
+  };
 }
+
+
 /******************************************************************************
  * 
  * Terminal
