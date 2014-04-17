@@ -1438,7 +1438,7 @@ function canvasState(canvas) {
   background.width = 800;
   background.height = 500;
   var bg_context = background.getContext('2d');
-  this.highlights;
+  this.highlights = null;
   setup_grid(bg_context, this.highlights);
 
 	//all the manipulatable objects on canvas here
@@ -1449,8 +1449,8 @@ function canvasState(canvas) {
   
   //attributes specifically for dragging
   this.dragging = false;
-  this.xOffset;
-  this.yOffset;
+  this.xOffset = 0;
+  this.yOffset = 0;
   
   //Button states.  At any point only one of these can be true
   this.default = true;
@@ -1475,7 +1475,7 @@ function canvasState(canvas) {
   button_cover.src = "/static/button_cover.png";
   button_cover.onload = function() {
     bg_context.drawImage(button_cover, 730, 10);
-  }
+  };
   
   //Drag button.  Self explanatory
   var drag_indicate = new Image();
@@ -1487,14 +1487,14 @@ function canvasState(canvas) {
   indicate_on.src = "/static/move_button_on.png";
   indicate_on.onload = function() {
     fg_context.drawImage(indicate_on, 740, 30);
-  }
+  };
   
   //Rotate button, self explanatory
   var rotate_button = new Image();
   rotate_button.src = "/static/rotate_button.png";
   rotate_button.onload = function() {
     fg_context.drawImage(rotate_button, 740, 80);
-  }
+  };
   
   var rotate_button_on = new Image();
   rotate_button_on.src = "/static/rotate_button_on.png";
@@ -1504,7 +1504,7 @@ function canvasState(canvas) {
   wire_button.src = "/static/test.png";
   wire_button.onload = function() {
     fg_context.drawImage(wire_button, 740, 130);
-  }
+  };
   
   var wire_button_on = new Image();
   wire_button_on.src = "/static/test_on.png";
@@ -1518,24 +1518,24 @@ function canvasState(canvas) {
   erase_button.src = "/static/erase_button.png";
   erase_button.onload = function() { 
     fg_context.drawImage(erase_button, 740, 180);
-  }
+  };
 
   var erase_button_on = new Image();
   erase_button_on.src = "/static/erase_button_on.png";
   
   //The treasure_chest button.  Used to open the "inventory"
   var treasurechest_button = new Image();
-  treasurechest_button.src = "/static/treasurechest.png"
+  treasurechest_button.src = "/static/treasurechest.png";
   treasurechest_button.onload = function() {
     fg_context.drawImage(treasurechest_button, 740, 230);
-  }
+  };
 
 	//Simulate toggle switch
   var simulate_button = new Image();
   simulate_button.src = "/static/toggle_build.png";
   simulate_button.onload = function() {
     fg_context.drawImage(simulate_button, 740, 390);
-  }
+  };
 
   var simulate_button_on = new Image();
   simulate_button_on.src = "/static/toggle_simulate.png";
@@ -1543,11 +1543,14 @@ function canvasState(canvas) {
   //Anytime the state is refreshed, things are redrawn on the canvas and if
   //necessary, different images are used, or different flags are thrown
   this.refresh = function() {
+  
+  	//counter vars
+  	var i;
     
     //neat little hack to basically wipe the canvas clean
     //note that we're only wiping the foreground, background is untouched
     //runs faster that way
-    canvas.width = canvas.width
+    canvas.width = canvas.width;
     fg_context.drawImage(background, 0, 0);
     
     //Basically, if we're not doing anything, then drag button is on by default
@@ -1594,15 +1597,15 @@ function canvasState(canvas) {
     else { fg_context.drawImage(simulate_button, 740, 390); }
 
 		//Now that buttons are out of way, draw all the components in the state
-    for(var i = 0; i < this.components.length; i++) {
+    for(i = 0; i < this.components.length; i++) {
       this.components[i].draw(context);
       this.components[i].display_flag = false;
     }
     
     //Then, draw the wires
-    for(var i = 0; i < this.wires.length; i++) { this.wires[i].draw(context); }
+    for(i = 0; i < this.wires.length; i++) { this.wires[i].draw(context); }
     
-  }
+  };
   
   /************************************
   * Mutators
@@ -1621,7 +1624,7 @@ function canvasState(canvas) {
       this.erasing = false;
       this.simulating = false;
     }
-  }
+  };
 
   this.setDrawing = function(bool) {
     if(bool) {
@@ -1637,7 +1640,7 @@ function canvasState(canvas) {
       this.drawing = false;
       this.default = true;
     }
-  }
+  };
   
   this.setColorSelect = function(bool) {
     if(bool) {
@@ -1653,7 +1656,7 @@ function canvasState(canvas) {
       this.color_select = false;
       this.default = true;
     }
-  }
+  };
 
   this.setErasing = function(bool) { 
     if(bool) {
@@ -1669,7 +1672,7 @@ function canvasState(canvas) {
       this.erasing = false;
       this.default = true;
     }
-  }
+  };
   
   this.setRotating = function(bool) {
     if(bool) {
@@ -1685,7 +1688,7 @@ function canvasState(canvas) {
       this.rotating = false;
       this.default = true;
     }
-  }
+  };
   
   this.setOpening = function(bool) {
 	  if(bool) {
@@ -1701,11 +1704,11 @@ function canvasState(canvas) {
 		  this.open_chest = false;
 		  this.default = true;
 	  }
-  }
+  };
   
   this.addComponent = function(component) {
     this.components.push(component);
-  }
+  };
   
   this.addWire = function(wire) {
   
@@ -1732,10 +1735,10 @@ function canvasState(canvas) {
     }
     
     this.wires.push(wire);
-  }
+  };
   
   this.removeWire = function(wire) {
-    for (w in this.wires) {
+    for (var w in this.wires) {
       if (this.wires[w] == wire) {
 				var startObj = this.wires[w].startTerm.attachedTo;
 				var endObj = this.wires[w].endTerm.attachedTo;
@@ -1750,22 +1753,22 @@ function canvasState(canvas) {
 			this.wires.splice(w, 1); return true;
       }
     }
-  }
+  };
   
   this.removeBranch = function(branch) {
-    for (b in this.branches) {
+    for (var b in this.branches) {
       if(this.branches[b] == branch) {
 				this.branches.splice(b, 1);
 				return true;
       }
     }
-  }
+  };
   
   this.setHighlights = function(h) {
     highlights = h;
     background.width = background.width;
     setup_grid(bg_context, highlights);
-  }
+  };
   
   /*************************************
    * 		**Other**		*
@@ -1777,7 +1780,7 @@ function canvasState(canvas) {
     if(this.drawing)
       return false;
     
-    for(c in this.components) {
+    for(var c in this.components) {
       var component = this.components[c];
       if(component.isOver(mx, my)) {
 				var x = component.xPos;
@@ -1792,11 +1795,11 @@ function canvasState(canvas) {
 				return this.components[c];
       }
     }
-  }
+  };
   
   this.isOverTerminal = function(mouseX, mouseY) {
     
-    for(c in this.components) {
+    for(var c in this.components) {
 			var component = this.components[c];
       terminal = component.isOverTerminals(mouseX, mouseY);
       if(terminal) {
@@ -1804,25 +1807,25 @@ function canvasState(canvas) {
 				return terminal;
       }
     }
-  }
+  };
   
   this.isOverWire = function(mouseX, mouseY) {
-    for(w in this.wires) {
+    for(var w in this.wires) {
       var wire = this.wires[w];
       if(wire.isOver(mouseX, mouseY))
 				return wire;
     }
-  }
+  };
   
   this.isOverBranch = function(mouseX, mouseY) {
-    for(b in this.branches) {
+    for(var b in this.branches) {
       if(this.branches[b].isOver(mouseX, mouseY)) {
 				this.branches[b].draw(context);
 				return this.branches[b];
       }
     }
     return 0;
-  }
+  };
   
   //Little more complicated than methods above
   //In this case, it not only checks, but also performs certain actions
@@ -1838,12 +1841,18 @@ function canvasState(canvas) {
     if(mouseX > 740 && mouseX < 780) {
       //Is it over the drag button?
       if(mouseY > 30 && mouseY < 70) {
-				is_press ? this.setDefault(true) : hover_move = true;
+				if(is_press)
+					this.setDefault(true);
+				else
+					hover_move = true;
 				ret_val = true;
       }
       //Is it over the rotated button?
       else if(mouseY > 80 && mouseY < 120) {
-				is_press ? this.setRotating(!this.rotating) : hover_rotate = true;
+				if(is_press)
+					this.setRotating(!this.rotating);
+				else
+					hover_rotate = true;
 				ret_val = true;
       }
       //Is it over the wire-drawing button?
@@ -1867,7 +1876,10 @@ function canvasState(canvas) {
       }
       //Is the mouse over the erase button?
       else if(mouseY > 180 && mouseY < 220) {
-				is_press ? this.setErasing(!this.erasing) : hover_erasing = true;
+				if(is_press)
+					this.setErasing(!this.erasing);
+				else
+					hover_erasing = true;
 				ret_val = true;
       }
       //Is the mosue over the treasure chest?
@@ -1889,7 +1901,7 @@ function canvasState(canvas) {
       }
     }
     return ret_val;
-  }
+  };
   
   this.isOverColorTab = function(mouseX, mouseY) {
   
@@ -1918,7 +1930,7 @@ function canvasState(canvas) {
       }
     }
     return false;
-  }
+  };
   
   this.startSimulation = function() {
     
@@ -1935,7 +1947,11 @@ function canvasState(canvas) {
     
     var mod_count = 0;
     
-    for(var c in this.components) {
+    // counter vars
+    var c;
+    var p;
+    
+    for(c = 0; c < this.components.length; c ++) {
       if(this.components[c].type === "9 volt battery") {
 				voltage = this.components[c].voltage;
 				console.log("Power Found. Voltage is: " + voltage);
@@ -1951,7 +1967,7 @@ function canvasState(canvas) {
     }
     
     console.log("checking connections");
-    for(var c in this.components) {
+    for(c = 0; c < this.components.length; c ++) {
       if(this.components[c].type !== "9 volt battery") {
 				if(this.components[c].isPowered() && this.components[c].isGrounded()) {
 					console.log(this.components[c].type + " is connected");
@@ -1963,7 +1979,7 @@ function canvasState(canvas) {
     
     //This will need to be modified with a more detailed function
     //to calc total voltage dropped by LEDs  
-    for(var p in powered) {
+    for(p = 0; p < powered.length; p ++) {
       if(powered[p].type === "LED") {
 				voltage = voltage - powered[p].voltage;
       }
@@ -1977,7 +1993,7 @@ function canvasState(canvas) {
     
     amps = voltage / total_resistance;
     console.log("total amperage is: " + amps);
-    for(var c in this.components)
+    for(c = 0; c < this.components.length; c ++)
       if(this.components[c].type === "9 volt battery")
 				this.components[c].current = amps;
     
@@ -1986,7 +2002,7 @@ function canvasState(canvas) {
     
     return 0;
 
-  }
+  };
   
   
 	//October 1st
@@ -2003,7 +2019,12 @@ function canvasState(canvas) {
     
     var final_resistance;
     
-    for(var p in powered) {
+    //counter vars
+    var p;
+    var i;
+    var o;
+    
+    for(p = 0; p < powered.length; p ++) {
 	
 			inputs = powered[p].inputComps;
 			console.log(inputs);
@@ -2018,8 +2039,8 @@ function canvasState(canvas) {
 			}
 
 			else {
-				for(var i in inputs) {
-					for(var o in outputs) {
+				for(i = 0; i < inputs.length; i ++) {
+					for(o = 0; o < outputs.length; o ++) {
 						if(equal_series_sum(outputs[o], inputs[i]) &&
 						inputs[i].type !== "9 volt battery") {
 							powered[p].setParallelCluster(inputs[i]);
@@ -2040,19 +2061,11 @@ function canvasState(canvas) {
 			}
     }
     
-    for(var p in powered) {
+    for(p = 0; p < powered.length; p ++) {
 			powered[p].updateResistance(powered);
 			inputs = powered[p].inputComps;
 			outputs = powered[p].outputComps;
-			console.log("There are the inputs: ");
-			for(var i in inputs) {
-				console.log("- " + inputs[i].type);
-			}
-
-			console.log("There are the outputs: ");
-			for(var o in outputs) {
-				console.log("- " + outputs[o].type);
-			}
+			
 			if(inputs[0] !== outputs[0] || inputs[0].type !== "9 volt battery") {
 				done = false;
 			}
@@ -2066,7 +2079,7 @@ function canvasState(canvas) {
       final_resistance = powered[0].summedResist;
     
     return final_resistance;      
-  }
+  };
   
   calcForwardVoltage = function(powered, mod_count) {
   	console.log("calculating forward voltage");
@@ -2079,15 +2092,17 @@ function canvasState(canvas) {
     
     var finalVoltage;
     
-    for(var p in powered) {
+    // counter vars
+    var p = 0;
+    var i = 0;
+    var o = 0;
+    
+    for(p = 0; p < powered.length; p ++) {
 	
 			inputs = powered[p].inputComps;
-			console.log(inputs);
 			outputs = powered[p].outputComps;
-			console.log(outputs);
 
 			if(inputs.length == 1 && inputs[0].type !== "9 volt battery") {
-				console.log("merging input");
 				if(powered[p].type === "LED")
 					powered[p].setSeriesIntersect(inputs[0].seriesSum);
 				powered[p].swapInputComponents(inputs[0].inputComps);
@@ -2095,8 +2110,8 @@ function canvasState(canvas) {
 			}
 
 			else {
-				for(var i in inputs) {
-					for(var o in outputs) {
+				for(i = 0; i < inputs.length; i ++) {
+					for(o = 0; o < outputs.length; o ++) {
 						if(equal_series_sum(outputs[o], inputs[i]) &&
 						inputs[i].type !== "9 volt battery") {
 							if(powered[p].type === "resistor")
@@ -2119,20 +2134,12 @@ function canvasState(canvas) {
 			}
     }
     
-    for(var p in powered) {
+    for(p = 0; p < powered.length; p ++) {
       if(powered[p].type === "resistor") {
 				powered[p].updateResistance(powered);
 				inputs = powered[p].inputComps;
 				outputs = powered[p].outputComps;
-				console.log("There are the inputs: ");
-				for(var i in inputs) {
-					console.log("- " + inputs[i].type);
-				}
-	
-				console.log("There are the outputs: ");
-				for(var o in outputs) {
-					console.log("- " + outputs[o].type);
-				}
+
 				if(inputs[0] !== outputs[0] || inputs[0].type !== "9 volt battery") {
 					done = false;
 				}
@@ -2147,7 +2154,7 @@ function canvasState(canvas) {
       final_resistance = powered[0].summedResist;
     
     return final_resistance;      
-  }
+  };
 
   
   calc_current_volt = function(powered, amps, count) {
@@ -2161,22 +2168,23 @@ function canvasState(canvas) {
     var break_up;
     var counter = count + 1;
     
-    console.log("This is the array of powered " + powered);
-    for(var p in powered)
-      console.log(powered[p].seriesSum);
+    // counter vars;
+    var p;
+    var pp;
+    var cs;
       
     // traverse through the array of powered components
-    for(var p in powered) {
+    for(p = 0; p < powered.length; p ++) {
     	
       current_series = powered[p].seriesSum;
       
       // basically, if the series_sum != powered[p] itself, then we're going
       // to do something with it
-      if( !(current_series.length == 1 && (current_series[0] == powered[p]
-				&& current_series[0].type !== "Virtual Component") ) ) {
+      if( !(current_series.length == 1 && (current_series[0] == powered[p] &&
+      	current_series[0].type !== "Virtual Component") ) ) {
 				
 				// traverse through the list of components in the series sum
-				for(var cs in current_series) {
+				for(cs = 0; cs < current_series.length; cs ++) {
 					// if cs != a virtual component, we're going to use pop_solve with the
 					// assumption that this component is in series, and break from the loop
 					if(current_series[cs] != powered[p] &&
@@ -2209,13 +2217,13 @@ function canvasState(canvas) {
 					// attr, and if one of those summed components equals our pop_solve
 					// component, we remove it from the array of series_sum comps, while
 					// exercising care not to remove powered[pp] from its own series_sum
-					for(var pp in powered) {
+					for(pp = 0; pp < powered.length; pp ++) {
 						current_series = powered[pp].seriesSum;
-						for(var cs in current_series) {
+						for(cs = 0; cs < current_series.length; cs ++) {
 							if(current_series[cs] != powered[pp] &&
 							current_series[cs] == pop_solve) {
 								current_series.splice(cs, 1);
-								console.log("splicing");
+								cs --;
 							}
 						}
 					}
@@ -2232,7 +2240,7 @@ function canvasState(canvas) {
 					cluster_voltage = break_up.resistance * amps || break_up.summedResist * amps;
 					console.log("This is the voltage for the cluster: " + cluster_voltage);
 					
-					for(var cps in current_paraseries) {
+					for(cps = 0; cps < current_paraseries.length; cps ++) {
 						para_resistance = 0;
 						// basically, we're calculating the combined resistance of all series
 						// components in this paraseries, then we are assigning the current
@@ -2254,15 +2262,14 @@ function canvasState(canvas) {
 					// parallel cluster, we can remove this virtual component from the
 					// series sum of every single component in powered, now that it's been
 					// satisfactorily calculated
-					for(var pp in powered) {
+					for(pp = 0; pp < powered.length; pp ++) {
 						current_series = powered[pp].seriesSum;
-						for(var cs in current_series) {
-							if(current_series[cs] != powered[pp] &&
-							current_series[cs] == break_up)
-							current_series.splice(cs, 1);
-							if(powered[pp].entity_of == break_up) {
-								console.log(powered[pp].seriesSum);
+						for(cs = 0; cs < current_series.length; cs ++) {
+							if(current_series[cs] != powered[pp] && current_series[cs] == break_up) {
+								current_series.splice(cs, 1);
+								cs --;
 							}
+
 						}
 					}
 					
@@ -2284,9 +2291,8 @@ function canvasState(canvas) {
       calc_current_volt(powered, amps, counter);
     }
     console.log("finished");
-    return
+    return;
   };
-	
   
   equal_series_sum = function(input, output) {
     
@@ -2303,21 +2309,21 @@ function canvasState(canvas) {
 						unique = false;
 					}
 				}
-				if(unique == true)
+				if(unique === true)
 				break;
       }
     }
     return !unique;
     
-  }
+  };
   
   this.killSimulation = function() {
 		
-		for (c in this.components) {
+		for (var c in this.components) {
 		  this.components[c].on_off = false;
 		  this.components[c].simulate_flag = false;
 		}
     this.simulating = false;
     
-  }
+  };
 }
