@@ -533,11 +533,23 @@ function Component(x, y, w, h, src, context) {
   };
   
   this.replaceInput = function(orig, replacement) {
-  
-    var already_there = false;
     
     // counter vars
     var i = 0;
+    var r = 0;
+    
+    var replace_count = 0;
+    var do_nothing;
+    var already_there = false;
+    
+    // see if this is inside the replacement's array of cluster entities
+    for(r = 0; r < replacement.cluster_entities.length; r ++) {
+	    if(replacement.cluster_entities[r] == this)
+	    	do_nothing = true;
+    }
+    
+    if(do_nothing)
+    	return;
         
     for(i = 0; i < this.inputComps.length; i ++) {
       if(this.inputComps[i] == orig) {
@@ -552,7 +564,7 @@ function Component(x, y, w, h, src, context) {
     		this.inputComps.splice(i, 1); i --;
     	}
     }
-    
+        
     for(i = 0; i < this.future_inputComps.length; i ++) {
       if(this.future_inputComps[i] == orig) {
 				this.future_inputComps[i] = replacement;
@@ -560,11 +572,14 @@ function Component(x, y, w, h, src, context) {
     }
     
     for(i = 0; i < this.future_inputComps.length; i ++) {
-    	if(this.future_inputComps[i] == replacement && !already_there)
-    		already_there = true;
-    	else if(this.future_inputComps[i] == replacement) {
-    		this.future_inputComps.splice(i, 1); i --;
+    	if(this.future_inputComps[i] == replacement && replace_count >=
+    		this.mergedInputs) {
+    		this.future_inputComps.splice(i, 1);
+    		i --;
     	}
+    	else if(this.future_inputComps[i] == replacement && replace_count <
+    		this.mergedInputs)
+    		replace_count ++;
     }
     
     if(this.entity_of)
@@ -627,17 +642,24 @@ function Component(x, y, w, h, src, context) {
   };
   
   this.replaceOutput = function(orig, replacement) {
-  
-    var already_there = false;
-    var replCluster = replacement.cluster_entities;
-    var outputCluster;
-    var is_equal = false;
     
     // counter vars
     var o = 0;
+    var r = 0;
     
-    console.log("calling replace output");
+    var replace_count = 0;
+    var do_nothing = false;
+    var already_there = false
     
+    // see if this is inside the replacement's array of cluster entities
+    for(r = 0; r < replacement.cluster_entities.length; r ++) {
+	    if(replacement.cluster_entities[r] == this)
+	    	do_nothing = true;
+    }
+    
+    if(do_nothing)
+    	return;
+    	    
     for(o = 0; o < this.outputComps.length; o ++) {
       if(this.outputComps[o] == orig) {
 				this.outputComps[o] = replacement;
@@ -653,6 +675,8 @@ function Component(x, y, w, h, src, context) {
     	}
     }
     
+    already_there = false;
+    
     for(o = 0; o < this.future_outputComps.length; o ++) {
       if(this.future_outputComps[o] == orig) {
 				this.future_outputComps[o] = replacement;
@@ -661,11 +685,14 @@ function Component(x, y, w, h, src, context) {
     }
     
     for(o = 0; o < this.future_outputComps.length; o ++) {
-    	if(this.future_outputComps[o] == replacement && !already_there)
-    		already_there = true;
-    	else if(this.future_outputComps[o] == replacement) {
-    		this.future_outputComps.splice(o, 1); o --;
+    	if(this.future_outputComps[o] == replacement && replace_count >=
+    		this.mergedOutputs) {
+    		this.future_outputComps.splice(o, 1);
+    		o --;
     	}
+    	else if(this.future_outputComps[o] == replacement && replace_count <
+    		this.mergedOutputs)
+    		replace_count ++;
     }
     
     if(this.entity_of)
@@ -705,7 +732,7 @@ function Component(x, y, w, h, src, context) {
 	  }
 	  
 	  else if (this.swapInput)
-	  	this.inputComps = this.future_outputComps.slice(0);
+	  	this.inputComps = this.future_inputComps.slice(0);
 	      
     if(this.mergedOutputs > 1) {
     
@@ -1027,7 +1054,7 @@ function CompCluster(cluster, inputs, outputs, p) {
     if(this.cluster_update) {
       if(!this.entity_of) {
 				resistor_cluster = new CompCluster(this.parallel_cluster, this.inputComps,
-					this.outputComps, poweredComps);
+					this.outputComps, this.poweredComps);
       }
       this.entity_of.setAndReplace();
 		}
@@ -1963,7 +1990,7 @@ function canvasState(canvas) {
     var done = true;
     
     var final_resistance;
-    
+        
     //counter vars
     var p;
     var i;
