@@ -433,23 +433,6 @@ function Component(x, y, w, h, src, context) {
     
     var unique = true;
     
-    /*
-    if(this.summedResist > 0)
-      effective_invert = (1 / this.summedResist);
-    else
-      effective_invert = 0;
-    
-    if(parallel_invert > 0)
-      parallel_invert = (1 / parallel_invert);
-    else
-      parallel_invert = 0;
-          
-    if(!(parallel_invert && effective_invert))
-      this.future_effective = 0;
-    else
-      this.future_effective = Math.pow((effective_invert + parallel_invert), -1);
-    */
-    
     if(!this.entity_of)
       this.parallelSeriesSum = this.seriesSum.slice(0);
     else
@@ -543,34 +526,8 @@ function Component(x, y, w, h, src, context) {
 	  for(var i in inputs)
 		  this.future_inputComps.push(inputs[i]);
 		
-		/*
-    for(var i in this.future_inputComps) {
-      if(this.future_inputComps[i] == input)
-			this.future_inputComps.splice(i, 1);
-    }
-    
-    for(var i in inputs) {
-      for(var ii in this.future_inputComps) {
-				if(inputs[i] == this.future_inputComps[ii]) {
-					unique = false;
-					break;
-				}
-      }
-      if(unique) {
-				for(var s in this.seriesSum) {
-					if(inputs[i] == this.seriesSum[s]) {
-						in_series_sum = true;
-						break;
-					}
-				}
-				if(!in_series_sum)
-					this.future_inputComps.push(inputs[i]);
-      }
-    }
-    */
-    
-    if(this.entity_of)
-      this.entity_of.setFutureInputs(this.future_inputComps);
+    //if(this.entity_of)
+    //  this.entity_of.setFutureInputs(this.future_inputComps);
     
     this.mergedInputs ++;
   };
@@ -592,7 +549,7 @@ function Component(x, y, w, h, src, context) {
     	if(this.inputComps[i] == replacement && !already_there)
     		already_there = true;
     	else if(this.inputComps[i] == replacement) {
-    		this.inputComps[i].splice(i, 1); i --;
+    		this.inputComps.splice(i, 1); i --;
     	}
     }
     
@@ -639,46 +596,17 @@ function Component(x, y, w, h, src, context) {
   };
   
   this.mergeOutputComponents = function(output) {
-  	/*
-    var unique = true;
-    var in_series_sum = false;
-    var outputs = output.outputComps;
-    */
 
     var outputs = output.outputComps;
+    
     if(this.mergedOutputs == 1)
 	    this.future_outputComps = this.outputComps.slice(0);
 	    
 	  for(var o in outputs)
 		  this.future_outputComps.push(outputs[o]);
-    
-    /*
-    for(var o in this.future_outputComps) {
-      if(this.future_outputComps[o] == output)
-				this.future_outputComps.splice(o, 1);
-    }
-    
-    for(var o in outputs) {
-      for(var oo in this.future_outputComps) {
-				if(outputs[o] == this.future_outputComps[oo]) {
-					unique = false;
-					break;
-				}
-      }
-      if(unique) {
-				for(var s in this.seriesSum) {
-					if(outputs[o] == this.seriesSum[s]) {
-						in_series_sum = true;
-						break;
-					}
-				}
-				if(!in_series_sum)
-					this.future_outputComps.push(outputs[o]);
-      }
-    }
-		*/
-    if(this.entity_of)
-      this.entity_of.setFutureOutputs(this.future_outputComps);
+
+    //if(this.entity_of)
+    //this.entity_of.setFutureOutputs(this.future_outputComps);
       
     this.mergedOutputs ++;
   };
@@ -706,7 +634,7 @@ function Component(x, y, w, h, src, context) {
     	if(this.outputComps[o] == replacement && !already_there)
     		already_there = true;
     	else if(this.outputComps[o] == replacement) {
-    		this.outputComps[o].splice(o, 1); o --;
+    		this.outputComps.splice(o, 1); o --;
     	}
     }
     if(this.entity_of)
@@ -734,7 +662,7 @@ function Component(x, y, w, h, src, context) {
 			    if(input[0] == this.future_inputComps[i]) {
 				    count ++;
 				    if(count >= this.mergedInputs)
-					    this.inputComps.push(input);
+					    this.inputComps.push(input[0]);
 					  this.future_inputComps.splice(i, 1);
 					  i --;
 					}
@@ -756,7 +684,7 @@ function Component(x, y, w, h, src, context) {
 			    if(output[0] == this.future_outputComps[o]) {
 				    count ++;
 				    if(count >= this.mergedOutputs)
-					    this.outputComps.push(output);
+					    this.outputComps.push(output[0]);
 						this.future_outputComps.splice(o, 1);
 						o --;
 				  }
@@ -775,15 +703,6 @@ function Component(x, y, w, h, src, context) {
 					this.inputComps, this.outputComps, powered);
       }
       this.entity_of.setAndReplace();
-      /*
-      this.seriesSum = [];
-      this.seriesSum.push(resistor_cluster);
-      for(var p in powered) {
-				powered[p].replaceOutput(this, resistor_cluster);
-				powered[p].replaceInput(this, resistor_cluster);
-      }
-      this.cluster_update = false;
-      */
     }
     
     this.future_series_sum = this.seriesSum.slice(0);
@@ -954,7 +873,9 @@ function CompCluster(cluster, inputs, outputs, p) {
   this.setAndReplace = function() {
 	  for (var i in this.cluster_entities) {
 		  this.cluster_entities[i].seriesSum = [];
+		  this.cluster_entities[i].future_series_sum = [];
 		  this.cluster_entities[i].seriesSum.push(this);
+		  this.cluster_entities[i].future_series_sum.push(this);
 		  for(var p in this.poweredComps) {
 			  this.poweredComps[p].replaceInput(this.cluster_entities[i], this);
 			  this.poweredComps[p].replaceOutput(this.cluster_entities[i], this);
@@ -1017,7 +938,7 @@ function CompCluster(cluster, inputs, outputs, p) {
     	if(this.inputComps[i] == replacement && !already_there)
     		already_there = true;
     	else if(this.inputComps[i] == replacement) {
-    		this.inputComps[i].splice(i, 1); i --;
+    		this.inputComps.splice(i, 1); i --;
     	}
     }
         
@@ -1042,7 +963,7 @@ function CompCluster(cluster, inputs, outputs, p) {
     	if(this.outputComps[o] == replacement && !already_there)
     		already_there = true;
     	else if(this.outputComps[o] == replacement) {
-    		this.outputComps[o].splice(o, 1); o --;
+    		this.outputComps.splice(o, 1); o --;
     	}
     }
     
@@ -1058,41 +979,27 @@ function CompCluster(cluster, inputs, outputs, p) {
   };
   
   this.updateResistance = function(powered) {
-    this.inputComps = this.future_inputComps.slice(0);
-    this.outputComps = this.future_outputComps.slice(0);
-    
-    this.summedResist = 0;
-    
+    this.inputComps = this.cluster_entities[0].inputComps;
+    this.outputComps = this.cluster_entities[0].outputComps;
+        
     var resistor_cluster;
     
     this.seriesSum = this.future_series_sum.slice(0);
-    
-    console.log(this.seriesSum);
-    
+        
     if(this.cluster_update) {
       if(!this.entity_of) {
-				resistor_cluster = new CompCluster(this.futureSummedResist,
-				this.parallel_cluster, this.inputComps, this.outputComps);
-				console.log("New virtual component");
+				resistor_cluster = new CompCluster(this.parallel_cluster, this.inputComps,
+					this.outputComps, poweredComps);
       }
-      else {
-				resistor_cluster = this.entity_of;
-				console.log("this already has a virtual component");
-      }
-      this.seriesSum = [];
-      this.seriesSum.push(resistor_cluster);
-      for(var p in powered) {
-				powered[p].replaceOutput(this, resistor_cluster);
-				powered[p].replaceInput(this, resistor_cluster);
-      }
-      this.cluster_update = false;
-    }
+      this.entity_of.setAndReplace();
+		}
     
     this.future_series_sum = this.seriesSum.slice(0);
     
     if(this.entity_of)
-      this.entity_of.updateResistance();
+      this.entity_of.updateResistance(powered);
     
+    this.summedResist = 0;
     for(var s in this.seriesSum) {
       this.summedResist += this.seriesSum[s].resistance;
       if(this.seriesSum[s].type == "Virtual Component")
@@ -1135,7 +1042,7 @@ function Wire(x1, y1, x2, y2) {
   this.connectedToRight = null;
   
   this.startTerm = null;
-  this.endTerm = mull;
+  this.endTerm = null;
   
   this.highlight = false;
   
@@ -2025,9 +1932,9 @@ function canvasState(canvas) {
     var o;
     
     for(p = 0; p < powered.length; p ++) {
-	
+    	console.log("Quick Hack Here");
 			inputs = powered[p].inputComps;
-			console.log(inputs);
+			console.log(inputs[0]);
 			outputs = powered[p].outputComps;
 			console.log(outputs);
 
