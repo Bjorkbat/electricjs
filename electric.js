@@ -505,7 +505,7 @@ function Component(x, y, w, h, src, context) {
   
   this.swapInputComponents = function(other_inputComps) {
     this.future_inputComps = other_inputComps.slice(0);
-    console.log(this.future_inputComps);
+    this.swapInput = true;
   };
   
   // All this method does is take the input components from the component
@@ -553,6 +553,20 @@ function Component(x, y, w, h, src, context) {
     	}
     }
     
+    for(i = 0; i < this.future_inputComps.length; i ++) {
+      if(this.future_inputComps[i] == orig) {
+				this.future_inputComps[i] = replacement;
+      }
+    }
+    
+    for(i = 0; i < this.future_inputComps.length; i ++) {
+    	if(this.future_inputComps[i] == replacement && !already_there)
+    		already_there = true;
+    	else if(this.future_inputComps[i] == replacement) {
+    		this.future_inputComps.splice(i, 1); i --;
+    	}
+    }
+    
     if(this.entity_of)
       this.entity_of.replaceInput(orig, replacement);
   };
@@ -593,6 +607,7 @@ function Component(x, y, w, h, src, context) {
   
   this.swapOutputComponents = function(other_outputComps) {
     this.future_outputComps = other_outputComps.slice(0);
+    this.swapOutput = true;
   };
   
   this.mergeOutputComponents = function(output) {
@@ -637,6 +652,22 @@ function Component(x, y, w, h, src, context) {
     		this.outputComps.splice(o, 1); o --;
     	}
     }
+    
+    for(o = 0; o < this.future_outputComps.length; o ++) {
+      if(this.future_outputComps[o] == orig) {
+				this.future_outputComps[o] = replacement;
+				console.log("replacing output");
+      }
+    }
+    
+    for(o = 0; o < this.future_outputComps.length; o ++) {
+    	if(this.future_outputComps[o] == replacement && !already_there)
+    		already_there = true;
+    	else if(this.future_outputComps[o] == replacement) {
+    		this.future_outputComps.splice(o, 1); o --;
+    	}
+    }
+    
     if(this.entity_of)
       this.entity_of.replaceOutput(orig, replacement);
   };
@@ -672,6 +703,9 @@ function Component(x, y, w, h, src, context) {
 	    this.mergedInputs = 1;
 	    
 	  }
+	  
+	  else if (this.swapInput)
+	  	this.inputComps = this.future_outputComps.slice(0);
 	      
     if(this.mergedOutputs > 1) {
     
@@ -691,7 +725,11 @@ function Component(x, y, w, h, src, context) {
 		    }
 	    }
 	    this.mergedOutputs = 1;
+	    
     }
+    
+    else if (this.swapOutput)
+    	this.outputComps = this.future_outputComps.slice(0);
             
     var resistor_cluster;
     
