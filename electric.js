@@ -752,8 +752,10 @@ function Component(x, y, w, h, src, context) {
 	    
 	  }
 	  
-	  else if (this.swapInput)
+	  else if (this.swapInput) {
 	  	this.inputComps = this.future_inputComps.slice(0);
+	  	this.swapInput = false;
+	  }
 	      
     if(this.mergedOutputs > 1) {
     
@@ -776,8 +778,10 @@ function Component(x, y, w, h, src, context) {
 	    
     }
     
-    else if (this.swapOutput)
+    else if (this.swapOutput) {
     	this.outputComps = this.future_outputComps.slice(0);
+    	this.swapOutput = false;
+    }
                 
     this.seriesSum = this.future_series_sum.slice(0);
     
@@ -975,74 +979,60 @@ function CompCluster(cluster, inputs, outputs, p) {
 		  this.cluster_entities[ce].future_series_sum = [];
 		  this.cluster_entities[ce].seriesSum.push(properCluster);
 		  this.cluster_entities[ce].future_series_sum.push(properCluster);
+		  this.cluster_entities[ce].cluster_update = false;
 		  
-		  // this part is a doozy.  Basically, we're modifying the array of "safe"
-		  // components to remove any components that are contained in the cluster
-		  // entities
-		  if(this.cluster_entities[ce].type !== "Virtual Component") {
-			  for(s = 0; s < safe_array.length; s ++) {
-				  if(safe_array[s] == this.cluster_entities[ce]) {
-					  safe_array.splice(s, 1);
-					  break;
-				  }
-			  }
-		  }
-		  // Of course, it's a problem if one of the objects occupying the array of
-		  // cluster_entities is a CompCluster itself.  We don't care, we want its
-		  // "real" components.  So, create an intermediate array, which is a copy
-		  // of its cluster entities, and go through the process of removing any
-		  // "real" components from the safe_array that are also a cluster_entitiy
-		  //
-		  // Note to self, look into the benefits of making it such that intermediate
-		  // is "eaten" rather than traversed
-		  else {
-			  intermediate_array = this.cluster_entities[ce].cluster_entities.slice(0);
-			  for(var i = 0; i < intermediate_array.length; i ++) {
-				  if(intermediate_array[i].type !== "Virtual Component") {
-					  for(s = 0; s < safe_array.length; s ++) {
-						  if(safe_array[s] == intermediate_array[i]) {
-							  safe_array.splice(s, 1);
-							  break;
-						  }
+			if(!this.entity_of) {
+			  // this part is a doozy.  Basically, we're modifying the array of "safe"
+			  // components to remove any components that are contained in the cluster
+			  // entities
+			  if(this.cluster_entities[ce].type !== "Virtual Component") {
+				  for(s = 0; s < safe_array.length; s ++) {
+					  if(safe_array[s] == this.cluster_entities[ce]) {
+						  safe_array.splice(s, 1);
+						  break;
 					  }
 				  }
-				  // Naturally, virtual components could be in the intermediate array as
-				  // well.  So, concat that component's cluster_entities onto intermediate,
-				  // then splice the virtual component out of the array
-				  else {
-					  intermediate_array = intermediate_array.concat(
-					  	intermediate_array[i].cluster_entities);
-					  intermediate_array.splice(i, 1);
-					  i --;
+			  }
+			  // Of course, it's a problem if one of the objects occupying the array of
+			  // cluster_entities is a CompCluster itself.  We don't care, we want its
+			  // "real" components.  So, create an intermediate array, which is a copy
+			  // of its cluster entities, and go through the process of removing any
+			  // "real" components from the safe_array that are also a cluster_entitiy
+			  //
+			  // Note to self, look into the benefits of making it such that intermediate
+			  // is "eaten" rather than traversed
+			  else {
+				  intermediate_array = this.cluster_entities[ce].cluster_entities.slice(0);
+				  for(var i = 0; i < intermediate_array.length; i ++) {
+					  if(intermediate_array[i].type !== "Virtual Component") {
+						  for(s = 0; s < safe_array.length; s ++) {
+							  if(safe_array[s] == intermediate_array[i]) {
+								  safe_array.splice(s, 1);
+								  break;
+							  }
+						  }
+					  }
+					  // Naturally, virtual components could be in the intermediate array as
+					  // well.  So, concat that component's cluster_entities onto intermediate,
+					  // then splice the virtual component out of the array
+					  else {
+						  intermediate_array = intermediate_array.concat(
+						  	intermediate_array[i].cluster_entities);
+						  intermediate_array.splice(i, 1);
+						  i --;
+					  }
 				  }
 			  }
-		  }
-		  /*
-		  if(!this.entity_of) {
-			  for(var p in this.poweredComps) {
-			  	if(lowerCluster) {
-					  this.poweredComps[p].replaceInput(this.cluster_entities[i], properCluster,
-					  	lowerCluster);
-					  this.poweredComps[p].replaceOutput(this.cluster_entities[i],
-					  	properCluster, lowerCluster);
-					}
-					else {
-						this.poweredComps[p].replaceInput(this.cluster_entities[i], this);
-						this.poweredComps[p].replaceOutput(this.cluster_entities[i], this);
-					}
-			  }
-			}
-			*/
-			
-		  this.cluster_entities[ce].cluster_update = false;
+			} // endif(!this.entity_of)
 	  }
 	  
-	  // Note, only execute this stuff if this cluster isn't an entity of anything
-	  for(ce = 0; ce < this.cluster_entities.length; ce ++ ) {
-		  for(s = 0; s < safe_array.length; s ++) {
-			  safe_array[s].replaceInput(this.cluster_entities[ce], this);
-			  safe_array[s].replaceOutput(this.cluster_entities[ce], this);
-		  }
+	  if(!this.entity_of) {
+		  for(ce = 0; ce < this.cluster_entities.length; ce ++ ) {
+			  for(s = 0; s < safe_array.length; s ++) {
+				  safe_array[s].replaceInput(this.cluster_entities[ce], this);
+				  safe_array[s].replaceOutput(this.cluster_entities[ce], this);
+			  }
+			}
 		}
 	  return this;
   };
@@ -1072,14 +1062,17 @@ function CompCluster(cluster, inputs, outputs, p) {
   };
   
   this.swapInputComponents = function(other_inputComps) {
-    for(var ce in this.cluster_entities)
+    for(var ce in this.cluster_entities) {
       this.cluster_entities[ce].swapInputComponents(other_inputComps);
-    // this.future_inputComps = other_inputComps.slice(0);
+      this.cluster_entities[ce].swapInput = true;
+    }
   };
   
   this.swapOutputComponents = function(other_outputComps) {
-    for(var ce in this.cluster_entities)
+    for(var ce in this.cluster_entities) {
       this.cluster_entities[ce].swapOutputComponents(other_outputComps);
+      this.cluster_entities[ce].swapOutput = true;
+    }
     // this.future_outputComps = other_outputComps.slice(0);
   };
     
