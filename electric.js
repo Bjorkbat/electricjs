@@ -540,24 +540,6 @@ function Component(x, y, w, h, src, context) {
     var do_nothing;
     var already_there = false;
     
-    /*
-    if(lowerCluster === undefined) {
-	    // see if this is inside the replacement's array of cluster entities
-	    for(r = 0; r < replacement.cluster_entities.length; r ++) {
-		    if(replacement.cluster_entities[r] == this)
-		    	do_nothing = true;
-	    }
-	  }
-	  else {
-		  for(r = 0; r < lowerCluster.cluster_entities.length; r++) {
-			  if(lowerCluster.cluster_entities[r] == this)
-			  	do_nothing = true;
-		  }
-	  }
-    
-    if(do_nothing)
-    	return;
-    */  
     for(i = 0; i < this.inputComps.length; i ++) {
       if(this.inputComps[i] == orig) {
 				this.inputComps[i] = replacement;
@@ -659,25 +641,6 @@ function Component(x, y, w, h, src, context) {
     var do_nothing = false;
     var nothing_cluster;
     var already_there = false;
-    
-    /*
-    if(lowerCluster === undefined) {
-	    // see if this is inside the replacement's array of cluster entities
-	    for(r = 0; r < replacement.cluster_entities.length; r ++) {
-		    if(replacement.cluster_entities[r] == this)
-		    	do_nothing = true;
-	    }
-	  }
-	  else {
-		  for(r = 0; r < lowerCluster.cluster_entities.length; r++) {
-			  if(lowerCluster.cluster_entities[r] == this)
-			  	do_nothing = true;
-		  }
-	  }
-    
-    if(do_nothing)
-    	return;
-    */
     	    
     for(o = 0; o < this.outputComps.length; o ++) {
       if(this.outputComps[o] == orig) {
