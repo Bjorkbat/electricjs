@@ -971,17 +971,17 @@ function CompCluster(cluster, inputs, outputs, p) {
   	}
   	
 	  for (ce = 0; ce < this.cluster_entities.length; ce ++) {
-		  this.cluster_entities[i].seriesSum = [];
-		  this.cluster_entities[i].future_series_sum = [];
-		  this.cluster_entities[i].seriesSum.push(properCluster);
-		  this.cluster_entities[i].future_series_sum.push(properCluster);
+		  this.cluster_entities[ce].seriesSum = [];
+		  this.cluster_entities[ce].future_series_sum = [];
+		  this.cluster_entities[ce].seriesSum.push(properCluster);
+		  this.cluster_entities[ce].future_series_sum.push(properCluster);
 		  
 		  // this part is a doozy.  Basically, we're modifying the array of "safe"
 		  // components to remove any components that are contained in the cluster
 		  // entities
-		  if(this.cluster_entities[i].type !== "Virtual Component") {
+		  if(this.cluster_entities[ce].type !== "Virtual Component") {
 			  for(s = 0; s < safe_array.length; s ++) {
-				  if(safe_array[s] == this.cluster_entities[i]) {
+				  if(safe_array[s] == this.cluster_entities[ce]) {
 					  safe_array.splice(s, 1);
 					  break;
 				  }
@@ -996,12 +996,12 @@ function CompCluster(cluster, inputs, outputs, p) {
 		  // Note to self, look into the benefits of making it such that intermediate
 		  // is "eaten" rather than traversed
 		  else {
-			  intermediate_array = this.cluster_entities[i].cluster_entities.slice(0);
+			  intermediate_array = this.cluster_entities[ce].cluster_entities.slice(0);
 			  for(var i = 0; i < intermediate_array.length; i ++) {
 				  if(intermediate_array[i].type !== "Virtual Component") {
 					  for(s = 0; s < safe_array.length; s ++) {
 						  if(safe_array[s] == intermediate_array[i]) {
-							  safe_arrays.splice(s, 1);
+							  safe_array.splice(s, 1);
 							  break;
 						  }
 					  }
@@ -1034,14 +1034,14 @@ function CompCluster(cluster, inputs, outputs, p) {
 			}
 			*/
 			
-		  this.cluster_entities[i].cluster_update = false;
+		  this.cluster_entities[ce].cluster_update = false;
 	  }
 	  
 	  // Note, only execute this stuff if this cluster isn't an entity of anything
-	  for(ce = 0; ce < cluster_entities.length; ce ++ ) {
+	  for(ce = 0; ce < this.cluster_entities.length; ce ++ ) {
 		  for(s = 0; s < safe_array.length; s ++) {
-			  safe_array.replaceInput(this.cluster_entities[i], this);
-			  safe_array.replaceOutput(this.cluster_entities[i], this);
+			  safe_array[s].replaceInput(this.cluster_entities[ce], this);
+			  safe_array[s].replaceOutput(this.cluster_entities[ce], this);
 		  }
 		}
 	  return this;
@@ -1079,7 +1079,7 @@ function CompCluster(cluster, inputs, outputs, p) {
   
   this.swapOutputComponents = function(other_outputComps) {
     for(var ce in this.cluster_entities)
-      this.cluster_entities[ce].swapInputComponents(other_outputComps);
+      this.cluster_entities[ce].swapOutputComponents(other_outputComps);
     // this.future_outputComps = other_outputComps.slice(0);
   };
     
