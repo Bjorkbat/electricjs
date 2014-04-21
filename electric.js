@@ -427,8 +427,6 @@ function Component(x, y, w, h, src, context) {
     
   this.setParallelCluster = function(parallel_input) {
     
-    var effective_invert;
-    var parallel_invert = parallel_input.summedResist;
     var other_series_sum;
     
     var unique = true;
@@ -532,7 +530,7 @@ function Component(x, y, w, h, src, context) {
     this.mergedInputs ++;
   };
   
-  this.replaceInput = function(orig, replacement) {
+  this.replaceInput = function(orig, replacement, lowerCluster) {
     
     // counter vars
     var i = 0;
@@ -542,15 +540,24 @@ function Component(x, y, w, h, src, context) {
     var do_nothing;
     var already_there = false;
     
-    // see if this is inside the replacement's array of cluster entities
-    for(r = 0; r < replacement.cluster_entities.length; r ++) {
-	    if(replacement.cluster_entities[r] == this)
-	    	do_nothing = true;
-    }
+    /*
+    if(lowerCluster === undefined) {
+	    // see if this is inside the replacement's array of cluster entities
+	    for(r = 0; r < replacement.cluster_entities.length; r ++) {
+		    if(replacement.cluster_entities[r] == this)
+		    	do_nothing = true;
+	    }
+	  }
+	  else {
+		  for(r = 0; r < lowerCluster.cluster_entities.length; r++) {
+			  if(lowerCluster.cluster_entities[r] == this)
+			  	do_nothing = true;
+		  }
+	  }
     
     if(do_nothing)
     	return;
-        
+    */  
     for(i = 0; i < this.inputComps.length; i ++) {
       if(this.inputComps[i] == orig) {
 				this.inputComps[i] = replacement;
@@ -582,8 +589,9 @@ function Component(x, y, w, h, src, context) {
     		replace_count ++;
     }
     
-    if(this.entity_of)
-      this.entity_of.replaceInput(orig, replacement);
+    if(this.entity_of) {
+	    this.entity_of.grabInputs(this.inputComps, this.future_inputComps);
+    }
   };
   
   this.setOutputWire = function(wire) { this.outputTerm.connectedTo = wire; };
@@ -641,7 +649,7 @@ function Component(x, y, w, h, src, context) {
     this.mergedOutputs ++;
   };
   
-  this.replaceOutput = function(orig, replacement) {
+  this.replaceOutput = function(orig, replacement, lowerCluster) {
     
     // counter vars
     var o = 0;
@@ -649,16 +657,27 @@ function Component(x, y, w, h, src, context) {
     
     var replace_count = 0;
     var do_nothing = false;
-    var already_there = false
+    var nothing_cluster;
+    var already_there = false;
     
-    // see if this is inside the replacement's array of cluster entities
-    for(r = 0; r < replacement.cluster_entities.length; r ++) {
-	    if(replacement.cluster_entities[r] == this)
-	    	do_nothing = true;
-    }
+    /*
+    if(lowerCluster === undefined) {
+	    // see if this is inside the replacement's array of cluster entities
+	    for(r = 0; r < replacement.cluster_entities.length; r ++) {
+		    if(replacement.cluster_entities[r] == this)
+		    	do_nothing = true;
+	    }
+	  }
+	  else {
+		  for(r = 0; r < lowerCluster.cluster_entities.length; r++) {
+			  if(lowerCluster.cluster_entities[r] == this)
+			  	do_nothing = true;
+		  }
+	  }
     
     if(do_nothing)
     	return;
+    */
     	    
     for(o = 0; o < this.outputComps.length; o ++) {
       if(this.outputComps[o] == orig) {
@@ -695,8 +714,9 @@ function Component(x, y, w, h, src, context) {
     		replace_count ++;
     }
     
-    if(this.entity_of)
-      this.entity_of.replaceOutput(orig, replacement);
+    if(this.entity_of) {
+	    this.entity_of.grabOutputs(this.outputComps, this.future_outputComps);
+    }
   };
   
   this.updateResistance = function(powered) {
@@ -705,6 +725,7 @@ function Component(x, y, w, h, src, context) {
   	var splice_count = 0;
   	var input;
   	var output;
+    var resistor_cluster;
   	
   	// The two loops below are a process used for transferring over inputComps
   	// without getting duplicates / only getting those inputs that are common
@@ -757,16 +778,12 @@ function Component(x, y, w, h, src, context) {
     
     else if (this.swapOutput)
     	this.outputComps = this.future_outputComps.slice(0);
-            
-    var resistor_cluster;
-    
+                
     this.seriesSum = this.future_series_sum.slice(0);
     
     if(this.cluster_update) {
-      if(!this.entity_of) {
-				resistor_cluster = new CompCluster(this.parallel_cluster,
+			resistor_cluster = new CompCluster(this.parallel_cluster,
 					this.inputComps, this.outputComps, powered);
-      }
       this.entity_of.setAndReplace();
     }
     
@@ -936,17 +953,98 @@ function CompCluster(cluster, inputs, outputs, p) {
    * ************************************/
    
   this.setAndReplace = function() {
-	  for (var i in this.cluster_entities) {
+  	
+  	var properCluster;
+  	var safe_array = this.poweredComps.slice(0);
+  	var intermediate_array = [];
+  	
+  	// counter vars
+  	var i;
+  	var ce;
+  	var s;
+  	
+  	if(this.entity_of) {
+	  	properCluster = this.entity_of.setAndReplace();
+  	}
+  	else {
+	  	properCluster = this;
+  	}
+  	
+	  for (ce = 0; ce < this.cluster_entities.length; ce ++) {
 		  this.cluster_entities[i].seriesSum = [];
 		  this.cluster_entities[i].future_series_sum = [];
-		  this.cluster_entities[i].seriesSum.push(this);
-		  this.cluster_entities[i].future_series_sum.push(this);
-		  for(var p in this.poweredComps) {
-			  this.poweredComps[p].replaceInput(this.cluster_entities[i], this);
-			  this.poweredComps[p].replaceOutput(this.cluster_entities[i], this);
+		  this.cluster_entities[i].seriesSum.push(properCluster);
+		  this.cluster_entities[i].future_series_sum.push(properCluster);
+		  
+		  // this part is a doozy.  Basically, we're modifying the array of "safe"
+		  // components to remove any components that are contained in the cluster
+		  // entities
+		  if(this.cluster_entities[i].type !== "Virtual Component") {
+			  for(s = 0; s < safe_array.length; s ++) {
+				  if(safe_array[s] == this.cluster_entities[i]) {
+					  safe_array.splice(s, 1);
+					  break;
+				  }
+			  }
 		  }
+		  // Of course, it's a problem if one of the objects occupying the array of
+		  // cluster_entities is a CompCluster itself.  We don't care, we want its
+		  // "real" components.  So, create an intermediate array, which is a copy
+		  // of its cluster entities, and go through the process of removing any
+		  // "real" components from the safe_array that are also a cluster_entitiy
+		  //
+		  // Note to self, look into the benefits of making it such that intermediate
+		  // is "eaten" rather than traversed
+		  else {
+			  intermediate_array = this.cluster_entities[i].cluster_entities.slice(0);
+			  for(var i = 0; i < intermediate_array.length; i ++) {
+				  if(intermediate_array[i].type !== "Virtual Component") {
+					  for(s = 0; s < safe_array.length; s ++) {
+						  if(safe_array[s] == intermediate_array[i]) {
+							  safe_arrays.splice(s, 1);
+							  break;
+						  }
+					  }
+				  }
+				  // Naturally, virtual components could be in the intermediate array as
+				  // well.  So, concat that component's cluster_entities onto intermediate,
+				  // then splice the virtual component out of the array
+				  else {
+					  intermediate_array = intermediate_array.concat(
+					  	intermediate_array[i].cluster_entities);
+					  intermediate_array.splice(i, 1);
+					  i --;
+				  }
+			  }
+		  }
+		  /*
+		  if(!this.entity_of) {
+			  for(var p in this.poweredComps) {
+			  	if(lowerCluster) {
+					  this.poweredComps[p].replaceInput(this.cluster_entities[i], properCluster,
+					  	lowerCluster);
+					  this.poweredComps[p].replaceOutput(this.cluster_entities[i],
+					  	properCluster, lowerCluster);
+					}
+					else {
+						this.poweredComps[p].replaceInput(this.cluster_entities[i], this);
+						this.poweredComps[p].replaceOutput(this.cluster_entities[i], this);
+					}
+			  }
+			}
+			*/
+			
 		  this.cluster_entities[i].cluster_update = false;
 	  }
+	  
+	  // Note, only execute this stuff if this cluster isn't an entity of anything
+	  for(ce = 0; ce < cluster_entities.length; ce ++ ) {
+		  for(s = 0; s < safe_array.length; s ++) {
+			  safe_array.replaceInput(this.cluster_entities[i], this);
+			  safe_array.replaceOutput(this.cluster_entities[i], this);
+		  }
+		}
+	  return this;
   };
   
   this.setResistance = function(r) {
@@ -959,81 +1057,30 @@ function CompCluster(cluster, inputs, outputs, p) {
     this.cluster_update = true;
   };
   
-  this.setFutureOutputs = function(outputs) {
-    this.future_outputComps = outputs.slice(0);
+  this.grabOutputs = function(outputs, future_outputs) {
+  	this.outputComps = outputs.slice(0);
+    this.future_outputComps = future_outputs.slice(0);
     if(this.entity_of)
-      this.entity_of.setFutureOutputs(outputs);
+      this.entity_of.grabOutputs(this.outputComps, this.future_outputComps);
   };
   
-  this.setFutureInputs = function(inputs) {
-    this.future_inputComps = inputs.slice(0);
+  this.grabInputs = function(inputs, future_inputs) {
+		this.inputComps = inputs.slice(0);
+    this.future_inputComps = future_inputs.slice(0);
     if(this.entity_of)
-      this.entity_of.setFutureInputs(inputs);
+      this.entity_of.grabInputs(this.inputComps, this.future_inputComps);
   };
   
   this.swapInputComponents = function(other_inputComps) {
     for(var ce in this.cluster_entities)
       this.cluster_entities[ce].swapInputComponents(other_inputComps);
-    this.future_inputComps = other_inputComps.slice(0);
+    // this.future_inputComps = other_inputComps.slice(0);
   };
   
   this.swapOutputComponents = function(other_outputComps) {
     for(var ce in this.cluster_entities)
       this.cluster_entities[ce].swapInputComponents(other_outputComps);
-    this.future_outputComps = other_outputComps.slice(0);
-  };
-  
-  this.replaceInput = function(orig, replacement) {
-  
-    var already_there = false;
-    var replCluster = replacement.cluster_entities;
-    var inputCluster;
-    var is_equal = false;
-    
-    //counter vars
-    var i;
-        
-    for(i = 0; i < this.inputComps.length; i ++) {
-      if(this.inputComps[i] == orig) {
-				this.inputComps[i] = replacement;
-      }
-    }
-    
-    for(i = 0; i < this.inputComps.length; i ++) {
-    	if(this.inputComps[i] == replacement && !already_there)
-    		already_there = true;
-    	else if(this.inputComps[i] == replacement) {
-    		this.inputComps.splice(i, 1); i --;
-    	}
-    }
-        
-    if(this.entity_of)
-      this.entity_of.replaceInput(orig, replacement);
-  };
-  
-  this.replaceOutput = function(orig, replacement) {
-  
-    var already_there = false;
-    
-    //counter vars
-    var o = 0;
-        
-    for(o = 0; o < this.outputComps.length; o ++) {
-      if(this.outputComps[o] == orig) {
-				this.outputComps[o] = replacement;
-      }
-    }
-    
-    for(o = 0; o < this.outputComps.length; o ++) {
-    	if(this.outputComps[o] == replacement && !already_there)
-    		already_there = true;
-    	else if(this.outputComps[o] == replacement) {
-    		this.outputComps.splice(o, 1); o --;
-    	}
-    }
-    
-    if(this.entity_of)
-      this.entity_of.replaceOutput(orig, replacement);
+    // this.future_outputComps = other_outputComps.slice(0);
   };
     
   this.updateEffective = function() {
@@ -1052,10 +1099,8 @@ function CompCluster(cluster, inputs, outputs, p) {
     this.seriesSum = this.future_series_sum.slice(0);
         
     if(this.cluster_update) {
-      if(!this.entity_of) {
-				resistor_cluster = new CompCluster(this.parallel_cluster, this.inputComps,
-					this.outputComps, this.poweredComps);
-      }
+			resistor_cluster = new CompCluster(this.parallel_cluster, this.inputComps,
+				this.outputComps, this.poweredComps);
       this.entity_of.setAndReplace();
 		}
     
@@ -1970,7 +2015,7 @@ function canvasState(canvas) {
 				this.components[c].current = amps;
     
     console.log("now finding individual resistor voltage drops");  
-    calc_current_volt(powered, amps);
+    calc_current_volt(powered, amps, 0);
     
     return 0;
 
@@ -2227,7 +2272,7 @@ function canvasState(canvas) {
 						console.log("Series Resistance is: " + para_resistance);
 						para_amps = cluster_voltage / para_resistance;
 						console.log("The amperage is: " + para_amps);
-						calc_current_volt(current_paraseries[cps], para_amps, 1);
+						calc_current_volt(current_paraseries[cps], para_amps, 0);
 					}
 					
 					// finally, having gone through this process for every branch in the
