@@ -70,7 +70,7 @@ var open_chest = function() {
 	var main = document.getElementById("breadGroup");
 	main.appendChild(chest);
 	
-	$.get("/get_components", "chest=open", function(data) {
+	$.get("/get_components/", "chest=open", function(data) {
 	
 		var icon;
 		var icon_block;
