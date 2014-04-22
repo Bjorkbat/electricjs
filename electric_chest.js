@@ -121,7 +121,7 @@ var open_cat = function(icon_elem) {
 	var img;
 	var txt;
 	
-	$.get("/get_components", "cat="+category, function(data) {
+	$.get("/get_components/", "cat="+category, function(data) {
 		$("#chest").empty();
 		makeButton(chest);
 		
