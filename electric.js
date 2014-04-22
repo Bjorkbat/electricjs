@@ -2145,6 +2145,7 @@ function canvasState(canvas) {
     var p;
     var pp;
     var cs;
+    var cps;
       
     // traverse through the array of powered components
     for(p = 0; p < powered.length; p ++) {
