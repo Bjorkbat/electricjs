@@ -15,9 +15,9 @@ var frame_rate;
 
 
 /************************************************************
- * 
+ *
  * Various variables that may be of use for event listeners
- * 
+ *
  * **********************************************************/
 
 //if drawing == true, then user is actually in the process
@@ -53,7 +53,7 @@ function getMousePos(canvas, evt) {
 //Event listener for when user presses mouse button, the left one obviously
 canvas.onmousedown = function(evt) {
   mPos = getMousePos(canvas, evt);
-  
+
   if(state.isOverButton(mPos.x, mPos.y, true)) {
     state.refresh();
   }
@@ -78,27 +78,27 @@ canvas.onmousedown = function(evt) {
       if(!drawing) {
 				branchStart = state.isOverBranch(mPos.x, mPos.y);
 				if(!branchStart) { terminalStart = state.isOverTerminal(mPos.x, mPos.y); }
-	
+
 				if(mPos.x % 10 > 5) { startX = mPos.x + (10 - mPos.x % 10); }
 				else { startX = mPos.x - mPos.x % 10; }
 				if(mPos.y % 10 > 5) { startY = mPos.y + (10 - mPos.y % 10); }
 				else { startY = mPos.y - mPos.y % 10; }
-	
+
 				wire = new Wire(startX, startY, startX, startY);
 				drawing = true;
       }
       else {
 				drawing = false;
-	
+
 				branchEnd = state.isOverBranch(mPos.x, mPos.y);
 				if(!branchEnd) { terminalEnd = state.isOverTerminal(mPos.x, mPos.y); }
-	
+
 				if(mPos.x % 10 > 5) { endX = mPos.x + (10 - mPos.x % 10); }
 				else { endX = mPos.x - mPos.x %10 ; }
 				if(mPos.y % 10 > 5) { endY = mPos.y + (10 - mPos.y %10); }
 				else { endY = mPos.y - mPos.y % 10; }
 				wire.setEnd(endX, endY);
-	
+
 				if(branchStart) {
 					console.log("branch append");
 					wire.setStartObj(branchStart.terminal);
@@ -111,28 +111,28 @@ canvas.onmousedown = function(evt) {
 					branchEnd.addConnect(wire);
 				}
 				else if(terminalEnd) {wire.setEndObj(terminalEnd); }
-	
+
 				state.addWire(wire);
-				state.refresh();	
+				state.refresh();
       }
     }
     else if(state.erasing) {
       wire = state.isOverWire(mPos.x, mPos.y);
       if(wire) { console.log(state.removeWire(wire)); }
       state.refresh();
-    } 
-  }      
-}
+    }
+  }
+};
 
 /******************************************************************
- * 
+ *
  * event listener for mouseup / when user lets go of mouse button
- * 
+ *
  * ****************************************************************/
 
 canvas.onmouseup = function(evt) {
   mPos = getMousePos(canvas, evt);
-  
+
   var xval;
   var yval;
   if(state.dragging) {
@@ -143,30 +143,30 @@ canvas.onmouseup = function(evt) {
       // they do more than simply change the x and y positions
       if(xval % 10 > 5) { component.setCompX (xval + (10 - xval % 10)); }
       else { component.setCompX(xval - (xval % 10)); }
-      if(yval % 10 > 5) { component.setCompY (yval + (10 - yval % 10)); } 
+      if(yval % 10 > 5) { component.setCompY (yval + (10 - yval % 10)); }
       else { component.setCompY(yval - (yval % 10)); }
     }
     state.refresh();
     state.dragging = false;
   }
-}
+};
 
 /************************************************************
- * 
+ *
  * event listener for mouse movement / when user moves mouse
- * 
+ *
  * **********************************************************/
 
 canvas.onmousemove = function(evt) {
   mPos = getMousePos(canvas, evt);
-  
+
   current_time = new Date().getTime();
   if(current_time - last_time >= 33) {
     state.refresh();
     frame_rate = 1000 / (current_time - last_time);
     last_time = current_time;
   }
-  
+
   if(state.isOverButton(mPos.x, mPos.y, false)) {
     state.refresh();
   }
@@ -176,10 +176,10 @@ canvas.onmousemove = function(evt) {
     if(state.dragging) {
       var xOff = state.xOffset;
       var yOff = state.yOffset;
-      
+
       component.setCompX(mPos.x - xOff);
       component.setCompY(mPos.y - yOff);
-      
+
       wire = component.getInputWire();
       terminalStart = component.inputTerm;
       terminalEnd = component.outputTerm;
@@ -210,7 +210,7 @@ canvas.onmousemove = function(evt) {
 			else { endX = mPos.x - mPos.x %10 ; }
 			if(mPos.y % 10 > 5) { endY = mPos.y + (10 - mPos.y %10); }
 			else { endY = mPos.y - mPos.y % 10; }
-			
+
 			//then, refresh the canvas and draw the wire with these new endpoints
       state.refresh();
       wire.setEnd(endX, endY);
@@ -223,4 +223,4 @@ canvas.onmousemove = function(evt) {
       state.refresh();
     }
   }
-}
+};
